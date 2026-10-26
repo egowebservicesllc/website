@@ -25,7 +25,15 @@ export const PARTNERS = {
   awsBadge: "/badges/aws.png", // logo shown as a platform; "Partner" label only when aws is true
   azure: false,
   azureBadge: "/badges/azure.png", // logo shown as a platform; "Partner" label only when azure is true
+  // Paste your Google Cloud Partner Advantage directory URL here to show a "View our partner profile" link.
+  googleCloudProfileUrl: "https://cloud.google.com/find-a-partner/partner/ego-web-services-llc",
 };
+
+/** Google Cloud certifications held by the team (shown on /google-cloud). */
+export const GOOGLE_CLOUD_CERTIFICATIONS = [
+  { name: "Professional Cloud Architect", desc: "Designs secure, scalable and cost-efficient architectures on Google Cloud." },
+  { name: "Associate Cloud Engineer", desc: "Deploys, monitors and operates workloads and projects on Google Cloud." },
+];
 
 /** Markets served (used in copy, structured data and the video). */
 export const MARKETS = {

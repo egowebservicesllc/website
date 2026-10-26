@@ -11,11 +11,13 @@ export function PromoVideo({
   poster = "/videos/ego-promo-16x9-poster.jpg",
   className = "",
   label = "EGO Web Services promo video with voice-over",
+  captions,
 }: {
   src?: string;
   poster?: string;
   className?: string;
   label?: string;
+  captions?: string;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [load, setLoad] = useState(false);
@@ -66,6 +68,7 @@ export function PromoVideo({
         controls={reduced}
       >
         {load && <source src={src} type="video/mp4" />}
+        {captions && <track kind="captions" src={captions} srcLang="en" label="English" />}
       </video>
       {!reduced && (
         <button

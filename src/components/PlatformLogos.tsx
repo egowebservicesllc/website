@@ -13,14 +13,15 @@ const PLATFORMS = [
   { name: "Microsoft Azure", logo: PARTNERS.azureBadge, partner: PARTNERS.azure, h: "h-10" },
 ];
 
-export function PlatformLogos({ className, label = true }: { className?: string; label?: boolean }) {
+export function PlatformLogos({ className, label = true, only }: { className?: string; label?: boolean; only?: "google" }) {
+  const list = only === "google" ? PLATFORMS.slice(0, 1) : PLATFORMS;
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
       {label && (
-        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">Cloud platforms we deliver on</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-slate-500">{only === "google" ? "Official Google Cloud Partner" : "Cloud platforms we deliver on"}</p>
       )}
       <ul className="flex flex-wrap items-stretch justify-center gap-3">
-        {PLATFORMS.map((p) => (
+        {list.map((p) => (
           <li
             key={p.name}
             className="flex flex-col items-center justify-between gap-2 rounded-2xl bg-white border border-slate-200 shadow-sm px-5 pt-4 pb-3 min-w-[132px]"

@@ -2,9 +2,9 @@ import { Seo } from "@/components/Seo";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
-import { Server, Globe, Smartphone, PenTool, BarChart, Cloud, Check } from "lucide-react";
+import { Server, Globe, PenTool, BarChart, Cloud, Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { serviceIdFromAnchor } from "@/lib/site";
+import { SERVICE_MENU, typeHref } from "@/lib/nav";
 import { ProjectEstimator } from "@/components/ProjectEstimator";
 
 const fadeInUp = {
@@ -21,6 +21,7 @@ export default function Services() {
   const services = [
     {
       id: "it-consulting",
+      serviceId: "consulting",
       icon: Cloud,
       title: "Cloud Consulting & Migration",
       description: "As a Google Cloud Partner, we help businesses modernize their infrastructure and move to the cloud safely. We plan, migrate and manage workloads on Google Cloud, AWS and Microsoft Azure, with secure foundations, controlled costs and senior engineers who explain every decision in plain English.",
@@ -28,39 +29,36 @@ export default function Services() {
     },
     {
       id: "enterprise-hosting",
+      serviceId: "hosting",
       icon: Server,
-      title: "Enterprise Hosting",
-      description: "Business-critical infrastructure demands more than a shared server. We provide robust, scalable, and secure hosting environments tailored to your specific application requirements. With 40+ global infrastructure nodes, we ensure your digital assets are always fast, reliable, and accessible.",
+      title: "Hosting",
+      description: "From a simple website to business-critical applications, we provide the right hosting for each stage of your growth: shared hosting, VPS, dedicated servers and scalable cloud hosting. Every plan is secured, backed up and monitored, so your site stays fast, reliable and accessible.",
       features: ["99.99% Uptime Guarantee", "Automated Daily Backups", "DDoS Protection & Mitigation", "Global CDN Integration", "24/7 Infrastructure Monitoring"]
     },
     {
-      id: "web-development",
+      id: "development",
+      serviceId: "web-dev",
       icon: Globe,
-      title: "Web Development",
-      description: "We build custom web applications and marketing sites that prioritize speed, security, and user experience. Whether it's a complex SaaS platform or a high-converting corporate site, our senior developers use modern frameworks to deliver maintainable, high-performance code.",
-      features: ["Custom Web Applications", "E-commerce Solutions", "Content Management Systems (CMS)", "API Development & Integration", "Performance Optimization"]
-    },
-    {
-      id: "mobile-development",
-      icon: Smartphone,
-      title: "Mobile Development",
-      description: "Reach your customers wherever they are with intuitive, powerful mobile applications. We build native and cross-platform apps for iOS and Android that deliver flawless performance and engage users effectively, all backed by secure backend architectures.",
-      features: ["iOS & Android Apps", "Cross-Platform (React Native)", "UI/UX Mobile Design", "App Store Submission", "Ongoing Maintenance"]
+      title: "Web & App Development",
+      description: "We build websites, web applications and mobile apps that prioritize speed, security and user experience. Whether it's a high-converting company site, a SaaS platform or an iOS and Android app, our senior developers use modern frameworks to deliver maintainable, high-performance code.",
+      features: ["Custom Websites & Web Applications", "E-commerce Solutions", "iOS & Android Apps (Native or React Native)", "API Development & Integration", "App Store Submission & Maintenance"]
     },
     {
       id: "branding-design",
+      serviceId: "branding",
       icon: PenTool,
       title: "Branding & Design",
-      description: "Your visual identity should clearly communicate your competence and reliability. Our design team creates cohesive brand systems and user interfaces that build trust with your audience and make complex digital products feel simple and intuitive to use.",
-      features: ["Brand Identity & Logo Design", "UI/UX Application Design", "Website Design", "Design Systems & Guidelines", "Marketing Collateral"]
+      description: "Your visual identity should clearly communicate your competence and reliability. Our design team creates cohesive brand systems, graphics and motion that build trust with your audience, from your logo and website to animated videos for your marketing.",
+      features: ["Brand Identity & Logo Design", "Graphic Design & Marketing Collateral", "UI/UX & Website Design", "Video Animation & Motion Graphics", "Design Systems & Guidelines"]
     },
     {
       id: "digital-marketing",
+      serviceId: "marketing",
       icon: BarChart,
       title: "Digital Marketing",
-      description: "We focus on marketing strategies that generate tangible business outcomes, not just vanity metrics. From search engine optimization to targeted campaigns, we help you reach the right audience and convert them into loyal customers.",
-      features: ["Search Engine Optimization (SEO)", "Technical SEO Audits", "Content Strategy", "Conversion Rate Optimization", "Analytics & Reporting"]
-    }
+      description: "We focus on marketing that generates tangible business outcomes, not vanity metrics. Through social media, search engine optimization and paid advertising, we help you reach the right audience and convert them into loyal customers.",
+      features: ["Social Media Management", "Search Engine Optimization (SEO)", "PPC Advertising (Google, Meta, LinkedIn)", "Conversion Rate Optimization", "Analytics & Reporting"]
+    },
   ];
 
   return (
@@ -87,14 +85,13 @@ export default function Services() {
         <div className="container mx-auto px-4 md:px-6">
           <div className="space-y-32">
             {services.map((service, index) => (
+              <div key={service.id} id={service.id} className="scroll-mt-28">
               <motion.div 
-                key={service.id} 
-                id={service.id}
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-150px" }}
                 variants={staggerContainer}
-                className={`scroll-mt-28 flex flex-col lg:flex-row gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
+                className={`flex flex-col lg:flex-row gap-12 items-center ${index % 2 !== 0 ? 'lg:flex-row-reverse' : ''}`}
               >
                 <motion.div variants={fadeInUp} className="w-full lg:w-1/2">
                   <div className="bg-slate-50 p-8 md:p-12 rounded-3xl border border-slate-100 group hover:shadow-xl transition-shadow duration-500 relative overflow-hidden">
@@ -112,12 +109,12 @@ export default function Services() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-3 relative z-10">
                       <Button asChild className="font-medium px-8 rounded-full shadow-sm hover:scale-105 transition-transform">
-                        <Link href={`/contact?service=${serviceIdFromAnchor(service.id) ?? ""}`}>
+                        <Link href={`/contact?service=${service.serviceId}`}>
                           Discuss Your Project
                         </Link>
                       </Button>
                       <Button asChild variant="outline" className="font-medium px-8 rounded-full bg-white hover:border-primary hover:text-primary">
-                        <Link href={service.id === "it-consulting" ? "/google-cloud" : `/pricing#${serviceIdFromAnchor(service.id) ?? ""}`}>
+                        <Link href={service.id === "it-consulting" ? "/google-cloud" : `/pricing#${service.serviceId}`}>
                           {service.id === "it-consulting" ? "Google Cloud Services" : "See Pricing"}
                         </Link>
                       </Button>
@@ -144,6 +141,25 @@ export default function Services() {
                   </ul>
                 </motion.div>
               </motion.div>
+              {(() => {
+                const cat = SERVICE_MENU.find((c) => c.anchor === service.id);
+                if (!cat) return null;
+                return (
+                  <div className={`mt-12 grid gap-5 ${cat.types.length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : cat.types.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+                    {cat.types.map((t) => (
+                      <div key={t.anchor} id={t.anchor} className="scroll-mt-28 flex flex-col p-6 rounded-3xl bg-white border border-slate-200 shadow-sm hover:shadow-md hover:border-primary/30 transition-all">
+                        <h3 className="text-lg font-bold text-slate-900 mb-2">{t.label}</h3>
+                        <p className="text-slate-600 text-sm leading-relaxed mb-4 flex-1">{t.desc}</p>
+                        <div className="text-sm font-bold text-primary mb-4">{t.price}</div>
+                        <Link href={typeHref(t)} className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 hover:text-primary">
+                          {t.href ? "Learn more" : "Get a quote"} <ArrowRight className="w-4 h-4" />
+                        </Link>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+              </div>
             ))}
           </div>
         </div>

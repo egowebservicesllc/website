@@ -9,6 +9,7 @@ import { MailerLiteContactForm, SELECT_PACKAGE_EVENT } from "@/components/Mailer
 import { CalendlyWidget } from "@/components/CalendlyWidget";
 import { FaqSection } from "@/components/FaqSection";
 import { PlatformLogos } from "@/components/PlatformLogos";
+import { googleCloudFeature } from "@/lib/packages";
 import { CountUp } from "@/components/ui/count-up";
 import { BUSINESS } from "@/lib/site";
 import { getLanding } from "@/lib/landing";
@@ -34,6 +35,7 @@ function scrollToQuote() {
  */
 export default function LandingPage({ params }: { params: { slug: string } }) {
   const page = getLanding(params.slug);
+  const isGoogleLp = params.slug === "google-cloud";
 
   useEffect(() => {
     if (page) adsConversion("view_content", { content_name: page.metaTitle, content_category: page.serviceId });
@@ -130,7 +132,7 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
         {/* Trust strip */}
         <section className="py-10 bg-white border-b border-slate-100">
           <div className="container mx-auto px-4 md:px-6">
-            <PlatformLogos className="mb-10" />
+            <PlatformLogos className="mb-10" only={isGoogleLp ? "google" : undefined} />
             <div className="grid grid-cols-2 md:grid-cols-4 gap-y-8 text-center max-w-5xl mx-auto md:divide-x divide-slate-100">
               {[
                 { v: <CountUp end={BUSINESS.projectsDelivered} suffix="+" />, l: "Projects delivered" },
@@ -200,7 +202,7 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
                       <span className="text-slate-500 font-medium">{pkg.billing}</span>
                     </div>
                     <ul className="space-y-3 mb-8 flex-grow">
-                      {pkg.features.map((f) => (
+                      {pkg.features.map((f) => (isGoogleLp ? googleCloudFeature(f) : f)).map((f) => (
                         <li key={f} className="flex items-start gap-3">
                           <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
                           <span className="text-slate-600 font-medium">{f}</span>

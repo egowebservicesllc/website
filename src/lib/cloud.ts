@@ -36,7 +36,9 @@ export interface CloudPageConfig {
   servicesTitle: string;
   services: { icon: CloudIcon; title: string; desc: string }[];
   /** Optional extra highlighted section (e.g. local region, incentives). */
-  spotlight?: { title: string; body: string[] };
+  spotlight?: { title: string; body: string[]; cta?: string; points?: string[] };
+  /** Platform panel shown beside the long-form copy (replaces the stock photo). */
+  provider?: { name: string; logo: string; caption: string; stack: string[] };
   outcomes: string[];
   faq: FaqItem[];
   /** Pricing tab + contact form service to link to. */
@@ -89,7 +91,8 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
       { q: "Is EGO Web Services a Google Cloud Partner?", a: "Yes. EGO Web Services is a Google Cloud Partner providing Google Cloud consulting, migration and managed services to businesses worldwide." },
       { q: "How long does a migration to Google Cloud take?", a: "It depends on the number and complexity of workloads. A small application can move in weeks; larger estates are migrated in waves. Your free assessment includes a timeline before any work starts." },
       { q: "Can my migration be funded by Google?", a: "Some migrations may qualify for Google Cloud programs such as RaMP, which can include credits and partner services funding. We'll assess eligibility during your consultation. Incentives are subject to Google's approval and terms." },
-      { q: "Do you only work with Google Cloud?", a: "No. We're a Google Cloud Partner and we also deliver on AWS and Microsoft Azure, so we can recommend the right platform, or a multi-cloud setup, for each workload." },
+      { q: "Can you help with GKE, BigQuery or Vertex AI?", a: "Yes. We design and run workloads on Google Kubernetes Engine and Cloud Run, build analytics on BigQuery and Looker, and help you apply Vertex AI to practical business problems." },
+      { q: "Can you move us to Google Cloud from another provider?", a: "Yes. We migrate from on-premises data centers, hosting companies and other clouds to Google Cloud in tested stages, so the business keeps running during the move." },
       { q: "Can you manage our Google Cloud after migration?", a: "Yes. Our managed cloud service covers monitoring, patching, backups, security reviews, cost optimisation and 24/7 support." },
     ],
     pricingTab: "consulting",
@@ -176,28 +179,48 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/aws",
     navLabel: "AWS",
-    metaTitle: "AWS Consulting, Migration & Cost Optimization",
+    metaTitle: "AWS Consulting Services: Migration, Cost Optimization & Managed AWS",
     metaDescription:
-      "AWS consulting services by senior cloud engineers: AWS migration, architecture, cost optimization, security and managed AWS for businesses worldwide.",
+      "AWS consulting services by senior cloud engineers: AWS migration, landing zones, EKS and serverless, security reviews, cost optimization and managed AWS for businesses worldwide.",
     eyebrow: "Amazon Web Services",
     h1: "AWS consulting & migration",
     h1Highlight: "by senior cloud engineers.",
     intro:
-      "Whether you're moving to AWS, cleaning up an existing account or trying to bring the bill under control, we design, migrate and run AWS environments that are secure and cost-efficient.",
+      "Whether you're moving to AWS, cleaning up an existing account or trying to bring the bill under control, we design, migrate and run AWS environments that are secure, well-architected and cost-efficient.",
     whyTitle: "Get more from AWS, and spend less on it",
     why: [
-      "AWS offers hundreds of services, which is both its strength and the reason many accounts become hard to manage and expensive. We help you choose the right services, structure accounts and networking properly, and automate the operational work.",
-      "For existing AWS customers, we start with an architecture and cost review: security gaps, single points of failure, oversized resources and missing savings plans, with a prioritised list of fixes.",
+      "AWS offers the broadest range of cloud services, which is both its strength and the reason many accounts become hard to manage and expensive. We help you choose the right services, structure accounts and networking properly, and automate the operational work.",
+      "For existing AWS customers, we start with an architecture and cost review based on the AWS Well-Architected pillars: security gaps, single points of failure, oversized resources and missing Savings Plans, with a prioritised list of fixes.",
+      "New to AWS? We set up a secure multi-account landing zone from day one, migrate your servers, databases and applications in tested stages, and stay on to run and optimise the environment, alongside Google Cloud or Azure if you use more than one cloud.",
     ],
+    provider: {
+      name: "Amazon Web Services",
+      logo: "/badges/aws.png",
+      caption: "AWS services we design, migrate and run",
+      stack: ["EC2", "RDS & Aurora", "S3", "EKS & ECS", "Lambda", "CloudFront", "VPC & Transit Gateway", "IAM & Organizations", "CloudWatch", "Terraform & CloudFormation"],
+    },
     servicesTitle: "Our AWS services",
     services: [
-      { icon: "migrate", title: "AWS migration", desc: "Move servers, apps and databases to AWS with a tested, staged plan." },
-      { icon: "network", title: "Architecture & landing zone", desc: "Multi-account structure, IAM, VPC networking and logging done right." },
-      { icon: "cost", title: "AWS cost optimisation", desc: "Right-sizing, Savings Plans and Reserved Instances, budgets and alerts." },
-      { icon: "container", title: "Containers & serverless", desc: "ECS, EKS and Lambda architectures with CI/CD." },
-      { icon: "shield", title: "Security review", desc: "IAM, encryption, backups and baseline security checks." },
-      { icon: "monitor", title: "Managed AWS", desc: "24/7 monitoring, patching and support for your AWS environment." },
+      { icon: "migrate", title: "AWS migration", desc: "Move servers, apps and databases to AWS with a tested, staged plan and rollback at every step." },
+      { icon: "network", title: "Architecture & landing zone", desc: "Multi-account structure with AWS Organizations, IAM, VPC networking, logging and guardrails." },
+      { icon: "cost", title: "AWS cost optimization", desc: "Right-sizing, Savings Plans and Reserved Instances, storage tiers, budgets and alerts." },
+      { icon: "container", title: "Containers & serverless", desc: "EKS, ECS and Lambda architectures with CI/CD and infrastructure as code." },
+      { icon: "shield", title: "Security review", desc: "IAM least privilege, encryption, backups, GuardDuty and baseline security checks." },
+      { icon: "monitor", title: "Managed AWS", desc: "24/7 monitoring, patching, backups and support for your AWS environment." },
     ],
+    spotlight: {
+      title: "Already on AWS? Start with an architecture & cost review",
+      body: [
+        "Most AWS accounts we review are paying for capacity they don't use and carry security risks nobody has had time to fix. A fixed-price review gives you a clear picture and a prioritised plan within two weeks.",
+      ],
+      points: [
+        "Cost breakdown and quick savings (right-sizing, Savings Plans, idle resources)",
+        "Security and IAM findings ranked by risk",
+        "Reliability check: backups, single points of failure, multi-AZ",
+        "A prioritised action plan you can run yourself or with us",
+      ],
+      cta: "Book an AWS review",
+    },
     outcomes: [
       "A clean, secure AWS account structure",
       "Lower and more predictable AWS bills",
@@ -205,8 +228,11 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
       "Senior engineers who explain every decision",
     ],
     faq: [
-      { q: "Can you take over an existing AWS account?", a: "Yes. We start with a review of security, architecture and cost, then agree a plan before making changes." },
-      { q: "Should we use AWS or Google Cloud?", a: "Both are excellent. We're a Google Cloud Partner and also deliver on AWS, so we'll recommend the platform that fits your workloads, team and budget." },
+      { q: "Can you take over an existing AWS account?", a: "Yes. We start with a review of security, architecture and cost, then agree a plan with you before making any changes." },
+      { q: "How much can we save on AWS?", a: "It depends on your setup, but right-sizing, Savings Plans and removing idle resources often cut a noticeable share of the bill. The review shows the specific savings for your account before you commit to anything." },
+      { q: "Should we use AWS or Google Cloud?", a: "Both are excellent. We're a Google Cloud Partner and also deliver on AWS and Azure, so we'll recommend the platform that fits your workloads, team and budget rather than pushing one." },
+      { q: "Do you work with Kubernetes and serverless on AWS?", a: "Yes. We design and run workloads on Amazon EKS, ECS and Lambda, with CI/CD pipelines and infrastructure as code (Terraform or CloudFormation)." },
+      { q: "How long does an AWS migration take?", a: "Small migrations can take a few weeks; larger estates are moved in stages over a few months. You get a timeline in the proposal, and each stage is tested before cut-over." },
       { q: "How much does AWS consulting cost?", a: "Reviews and assessments start at $2,000 and migrations from $5,500, with a fixed quote after a free consultation." },
     ],
     pricingTab: "consulting",
@@ -215,28 +241,43 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/azure",
     navLabel: "Microsoft Azure",
-    metaTitle: "Microsoft Azure Consulting & Migration Services",
+    metaTitle: "Microsoft Azure Consulting, Migration & Managed Azure Services",
     metaDescription:
-      "Microsoft Azure consulting, migration and managed services for businesses already using Microsoft 365 and Windows Server. Senior engineers, fixed pricing, free consultation.",
+      "Microsoft Azure consulting, migration and managed services for businesses using Microsoft 365, Windows Server and SQL Server. Landing zones, AKS, licence savings, fixed pricing.",
     eyebrow: "Microsoft Azure",
     h1: "Microsoft Azure consulting",
     h1Highlight: "and migration, done properly.",
     intro:
-      "If your business runs on Microsoft 365, Windows Server or SQL Server, Azure is often the natural next step. We plan, migrate and manage Azure environments that are secure and cost-efficient.",
+      "If your business runs on Microsoft 365, Windows Server or SQL Server, Azure is often the natural next step. We plan, migrate and manage Azure environments that are secure, well-governed and cost-efficient.",
     whyTitle: "Azure for Microsoft-centric businesses",
     why: [
-      "Azure integrates closely with Microsoft Entra ID (Azure AD), Microsoft 365 and Windows workloads, and existing licences can sometimes be reused to reduce costs. Getting value from it still depends on a solid foundation: subscriptions, identity, networking and governance set up correctly.",
-      "We assess your current environment, recommend what to move and how, migrate in stages and stay on to manage and optimise it, alongside Google Cloud or AWS if you run more than one cloud.",
+      "Azure integrates closely with Microsoft Entra ID, Microsoft 365 and Windows workloads, and eligible existing licences can often be reused to reduce costs. Getting value from it still depends on a solid foundation: subscriptions, identity, networking and governance set up correctly.",
+      "We follow Microsoft's Cloud Adoption Framework: assess your current environment, build an Azure landing zone, migrate in tested stages and stay on to manage and optimise it.",
+      "Many of our clients run more than one cloud. We can connect Azure with Google Cloud or AWS, and with your on-premises servers, so identity, networking and monitoring work as one environment.",
     ],
+    provider: {
+      name: "Microsoft Azure",
+      logo: "/badges/azure.png",
+      caption: "Azure services we design, migrate and run",
+      stack: ["Virtual Machines", "Azure SQL", "App Service", "AKS", "Azure Functions", "Entra ID", "Virtual Network", "Azure Backup & Site Recovery", "Azure Monitor", "Azure Arc"],
+    },
     servicesTitle: "Our Azure services",
     services: [
       { icon: "migrate", title: "Azure migration", desc: "Move Windows servers, SQL databases and apps to Azure with a staged, tested plan." },
-      { icon: "network", title: "Landing zone & identity", desc: "Subscriptions, Entra ID, networking and governance policies." },
-      { icon: "cost", title: "Azure cost optimisation", desc: "Right-sizing, reservations and licence reuse where eligible." },
-      { icon: "shield", title: "Security & backup", desc: "Access controls, encryption, backup and disaster recovery." },
-      { icon: "code", title: "App modernisation", desc: "Move apps to App Service, containers or serverless when it makes sense." },
-      { icon: "monitor", title: "Managed Azure", desc: "24/7 monitoring, patching and support." },
+      { icon: "network", title: "Landing zone & identity", desc: "Subscriptions, management groups, Entra ID, networking and governance policies." },
+      { icon: "cost", title: "Azure cost optimization", desc: "Right-sizing, reservations, Azure Hybrid Benefit and licence reuse where eligible." },
+      { icon: "shield", title: "Security & backup", desc: "Access controls, Defender for Cloud baselines, backup and disaster recovery." },
+      { icon: "code", title: "App modernization", desc: "Move apps to App Service, AKS containers or Azure Functions when it makes sense." },
+      { icon: "monitor", title: "Managed Azure", desc: "24/7 monitoring, patching, backups and support." },
     ],
+    spotlight: {
+      title: "Already paying for Microsoft licences? Use them on Azure",
+      body: [
+        "With Azure Hybrid Benefit, eligible Windows Server and SQL Server licences (with Software Assurance or qualifying subscriptions) can be applied to Azure, which can significantly reduce what you pay for virtual machines and databases.",
+        "Eligibility depends on your licence agreements and Microsoft's terms. As part of a free consultation we'll review what you already own and show what it could save on Azure.",
+      ],
+      cta: "Check my licences",
+    },
     outcomes: [
       "A well-governed Azure environment",
       "Smooth migration of Microsoft workloads",
@@ -245,7 +286,10 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
     ],
     faq: [
       { q: "We use Microsoft 365. Do we need Azure?", a: "Not necessarily. Microsoft 365 runs on its own. Azure is worth considering if you also run servers, databases or apps you'd like to move off on-premises hardware. We'll tell you honestly if it's not worth it." },
-      { q: "Do you work with Google Cloud and AWS too?", a: "Yes. We're a Google Cloud Partner and also deliver on AWS, so we can support multi-cloud setups." },
+      { q: "Can we reuse our Windows Server and SQL Server licences?", a: "Often, yes. Azure Hybrid Benefit lets eligible licences be applied to Azure. We check your agreements during the consultation and include the savings in your plan." },
+      { q: "Can you migrate our on-premises Active Directory?", a: "Yes. We connect or migrate identity to Microsoft Entra ID, set up single sign-on and secure access, and plan the change so users aren't disrupted." },
+      { q: "Do you work with Google Cloud and AWS too?", a: "Yes. We're a Google Cloud Partner and also deliver on AWS, so we can support multi-cloud and hybrid setups." },
+      { q: "How long does an Azure migration take?", a: "From a few weeks for a handful of servers to a few months for larger estates, moved in tested stages. You get a timeline in the proposal." },
       { q: "How much does an Azure migration cost?", a: "Assessments start at $2,000 and migrations from $5,500, with a fixed quote after a free consultation." },
     ],
     pricingTab: "consulting",
@@ -297,3 +341,28 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
 export function getCloudPage(path: string) {
   return CLOUD_PAGES.find((p) => p.path === path);
 }
+
+/** "Which cloud is right for you?" comparison shown on the three provider pages. */
+export const CLOUD_COMPARE = [
+  {
+    path: "/google-cloud",
+    name: "Google Cloud",
+    logo: "/badges/google-cloud-icon.png",
+    partner: true,
+    bestFor: ["Data analytics & AI (BigQuery, Vertex AI)", "Kubernetes & containers (GKE, Cloud Run)", "Google's global private network"],
+  },
+  {
+    path: "/aws",
+    name: "AWS",
+    logo: "/badges/aws.png",
+    partner: false,
+    bestFor: ["The broadest range of cloud services", "A mature ecosystem and marketplace", "Serverless and event-driven apps"],
+  },
+  {
+    path: "/azure",
+    name: "Microsoft Azure",
+    logo: "/badges/azure.png",
+    partner: false,
+    bestFor: ["Microsoft 365, Entra ID & Windows workloads", "Reusing Windows Server & SQL licences", "Hybrid setups with on-premises servers"],
+  },
+];

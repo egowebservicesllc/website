@@ -107,3 +107,10 @@ export function serviceByLabel(label: string) {
   const l = label.toLowerCase();
   return PACKAGE_SERVICES.find((s) => s.title.toLowerCase() === l || l.startsWith(s.title.toLowerCase().split(" ")[0]));
 }
+
+/** Google Cloud-only wording for shared package lines (used on Google Cloud pages). */
+const GC_FEATURE: Record<string, string> = {
+  "Cost Estimate (GCP / AWS / Azure)": "Google Cloud Cost Estimate",
+  "Recommended Target Platform": "Target Google Cloud Architecture",
+};
+export const googleCloudFeature = (f: string) => GC_FEATURE[f] ?? f;
