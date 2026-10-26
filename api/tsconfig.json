@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "include": ["./**/*.ts", "../src/lib/packages.ts"],
+  "compilerOptions": { "types": ["node"], "lib": ["es2022", "dom"], "noEmit": true }
+}
