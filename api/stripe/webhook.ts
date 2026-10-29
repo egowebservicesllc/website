@@ -7,7 +7,7 @@
  */
 import { ENV, has, log } from "../_lib/env.js";
 import { formatMoney, getPaymentLinkMetadata, verifyStripeSignature } from "../_lib/stripe.js";
-import { commentOnTask, setTaskStatus, taskUrl } from "../_lib/clickup.js";
+import { addTag, commentOnTask, getTask, removeTag, setTaskStatus, taskTitle, taskUrl } from "../_lib/clickup.js";
 import { postMessage } from "../_lib/slack.js";
 import { sendEmail } from "../_lib/email.js";
 import { paymentReceivedEmail } from "../_lib/templates.js";
@@ -41,12 +41,18 @@ export async function POST(request: Request) {
 
   await commentOnTask(meta.clickup_task_id, `💰 Payment received: ${amount} from ${email} (Stripe session ${session.id}).`);
   await setTaskStatus(meta.clickup_task_id, ENV.clickupStatusPaid);
+  await removeTag(meta.clickup_task_id, "awaiting-payment");
+  await addTag(meta.clickup_task_id, "paid");
+  let orderTitle: string | undefined;
+  if (meta.clickup_task_id && has.clickup()) {
+    try { orderTitle = taskTitle((await getTask(meta.clickup_task_id)).name); } catch { /* optional */ }
+  }
 
   if (has.slack()) {
     const url = taskUrl(meta.clickup_task_id);
     await postMessage(
       [
-        { type: "section", text: { type: "mrkdwn", text: `💰 *Payment received: ${amount}*\n${name} · ${email}\nRef ${ref}` } },
+        { type: "section", text: { type: "mrkdwn", text: `💰 *Payment received: ${amount}*${orderTitle ? ` for *${orderTitle}*` : ""}\n${name} · ${email}\nRef ${ref}` } },
         ...(url ? [{ type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open in ClickUp" }, action_id: "open_clickup", url }] }] : []),
       ],
       `Payment received: ${amount} from ${name}`,
@@ -54,7 +60,7 @@ export async function POST(request: Request) {
   }
 
   if (email) {
-    const mail = paymentReceivedEmail(name, ref, amount);
+    const mail = paymentReceivedEmail(name, ref, amount, orderTitle);
     await sendEmail(email, mail.subject, mail.html, mail.text);
   }
   return new Response("ok");

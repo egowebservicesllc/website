@@ -8,7 +8,9 @@ const e = (k: string, d = "") => (process.env[k] ?? d).trim();
 
 export const ENV = {
   siteUrl: e("SITE_URL", "https://www.egowebservices.com"),
-  allowedOrigins: e("ALLOWED_ORIGINS", "https://www.egowebservices.com,https://egowebservices.com")
+  portalUrl: e("PORTAL_URL", "https://portal.egowebservices.com"),
+  portalSecret: e("PORTAL_SECRET"), // long random string; signs portal sign-in links and sessions
+  allowedOrigins: e("ALLOWED_ORIGINS", "https://www.egowebservices.com,https://egowebservices.com,https://portal.egowebservices.com")
     .split(",")
     .map((s) => s.trim())
     .filter(Boolean),
@@ -19,6 +21,7 @@ export const ENV = {
   clickupStatusReplied: e("CLICKUP_STATUS_REPLIED"), // e.g. "contacted" (optional)
   clickupStatusPaid: e("CLICKUP_STATUS_PAID"), // e.g. "won" (optional)
   clickupWorkspaceUrl: e("CLICKUP_TASK_URL_BASE", "https://app.clickup.com/t/"),
+  clickupWebhookSecret: e("CLICKUP_WEBHOOK_SECRET"), // from /api/clickup/setup; lets ClickUp notify clients
 
   // Slack
   slackBotToken: e("SLACK_BOT_TOKEN"),
@@ -49,6 +52,7 @@ export const has = {
   slack: () => Boolean(ENV.slackBotToken && ENV.slackChannelId),
   email: () => Boolean(ENV.resendApiKey),
   stripe: () => Boolean(ENV.stripeSecretKey),
+  portal: () => Boolean(ENV.portalSecret && ENV.portalSecret.length >= 16),
   ai: () => Boolean(ENV.anthropicApiKey),
 };
 

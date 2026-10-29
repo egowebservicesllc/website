@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { Server, Globe, PenTool, BarChart, Cloud, Check, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
-import { SERVICE_MENU, typeHref } from "@/lib/nav";
+import { SERVICE_MENU, canBuy, typeHref } from "@/lib/nav";
 import { ProjectEstimator } from "@/components/ProjectEstimator";
 
 const fadeInUp = {
@@ -152,7 +152,7 @@ export default function Services() {
                         <p className="text-slate-600 text-sm leading-relaxed mb-4 flex-1">{t.desc}</p>
                         <div className="text-sm font-bold text-primary mb-4">{t.price}</div>
                         <Link href={typeHref(t)} className="inline-flex items-center gap-1 text-sm font-semibold text-slate-900 hover:text-primary">
-                          {t.href ? "Learn more" : "Get a quote"} <ArrowRight className="w-4 h-4" />
+                          {t.href ? "Learn more" : canBuy(t) ? "Buy now" : "Get a quote"} <ArrowRight className="w-4 h-4" />
                         </Link>
                       </div>
                     ))}

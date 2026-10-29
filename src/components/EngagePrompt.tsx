@@ -6,7 +6,7 @@ import { BrandLogo } from "@/components/BrandLogo";
 import { track } from "@/lib/track";
 
 const KEY = "ego_prompt_seen";
-const SKIP = ["/contact", "/thank-you", "/privacy", "/terms", "/support"];
+const SKIP = ["/contact", "/thank-you", "/privacy", "/terms", "/support", "/checkout", "/portal"];
 
 /**
  * Desktop-only slide-in that offers a free consultation to engaged readers:

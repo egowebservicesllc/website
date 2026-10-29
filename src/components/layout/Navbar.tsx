@@ -331,8 +331,9 @@ export function Navbar() {
             {after.map((route) => (
               <NavLink key={route.path} {...route} />
             ))}
-            <div className="flex items-center gap-2 pl-2 border-l border-border">
+            <div className="flex items-center gap-4 xl:gap-5 pl-2 border-l border-border">
               <NavLink path="/support" label="Support" />
+              <NavLink path="/portal" label="Client login" />
             </div>
             {BUSINESS.phone && (
               <a href={`tel:${BUSINESS.phone}`} className="hidden xl:flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-primary transition-colors">
@@ -424,6 +425,9 @@ export function Navbar() {
                   onClick={() => setMobileMenuOpen(false)} 
                 />
               </motion.div>
+              <div className="px-2 py-3 border-b border-border/50">
+                <NavLink path="/portal" label="Client login" onClick={() => setMobileMenuOpen(false)} />
+              </div>
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

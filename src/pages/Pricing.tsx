@@ -1,3 +1,4 @@
+import { checkoutHref } from "@/lib/checkout";
 import { Seo } from "@/components/Seo";
 import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -158,6 +159,16 @@ export default function Pricing() {
                       ))}
                     </ul>
 
+                    {pkg.checkout ? (
+                      <div className="space-y-2">
+                        <Button asChild className="w-full h-12 rounded-xl text-base font-semibold hover:scale-[1.02] transition-transform">
+                          <Link href={checkoutHref(activeCategory, pkg.name)}>Buy now</Link>
+                        </Button>
+                        <Link href={`/contact?service=${activeCategory}&package=${encodeURIComponent(pkg.name)}`} className="block text-center text-sm font-semibold text-slate-500 hover:text-primary py-1">
+                          or ask a question first
+                        </Link>
+                      </div>
+                    ) : (
                     <Button 
                       asChild
                       variant={pkg.recommended ? "default" : "outline"}
@@ -170,6 +181,7 @@ export default function Pricing() {
                         {pkg.price === 'Custom' ? 'Discuss Requirements' : 'Get Started'}
                       </Link>
                     </Button>
+                    )}
                   </motion.div>
                 ))}
               </div>

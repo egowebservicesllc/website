@@ -82,3 +82,40 @@ Problems? Vercel → Project → **Logs**, filtered to `/api`. Every step logs a
 - `api/stripe/webhook.ts`: payment confirmations
 - `api/_lib/*`: ClickUp, Slack, Stripe, Resend, AI helpers and email templates
 - `src/lib/packages.ts`: package catalog and fixed prices (shared with the Pricing page)
+
+
+---
+
+# Buy now + client portal
+
+## Buy now (fixed-price packages)
+Hosting (Shared $9 · VPS $45 · Dedicated $150 /month), Logo Design ($950), Complete Brand ($2,800) and the Cloud Readiness Assessment ($2,000) now have a **Buy now** button (Pricing, Services, cloud pages, ad landing pages).
+
+1. The client fills a short order form at `/checkout` (contact details + package-specific details: domain for hosting, brand name/brief for design, current setup for the assessment).
+2. A ClickUp task is created (tags `order`, `awaiting-payment`) and Slack gets 🛒 **New order … awaiting payment**.
+3. The client pays on Stripe Checkout (cards, receipts and invoices handled by Stripe; hosting is a monthly subscription).
+4. When Stripe confirms: the task gets the `paid` tag (and `CLICKUP_STATUS_PAID` if set), Slack gets 💰, the client gets a "Payment received" email with a link to the portal.
+
+Until Stripe keys are added, Buy now quietly falls back to a normal lead (Slack + ClickUp + confirmation email), so no order is lost.
+
+**Stripe restricted key**: in addition to Products, Prices, Payment Links and Checkout Sessions (Write), give it **Customers (Read)** and **Customer portal (Write)** for the portal's Billing button.
+
+**Stripe customer portal (one time)**: Stripe → Settings → Billing → **Customer portal** → turn on invoices history, payment method updates and subscription cancellation → Save.
+
+## Client portal (portal.egowebservices.com)
+Clients sign in with a one-time email link (no passwords) and see:
+- **Orders**: every order/request made with their email, with its stage (Received → In progress → In review → Delivered) taken from the ClickUp status.
+- **Messages**: they can write to you (→ ClickUp comment + Slack). You reply by writing a ClickUp comment that starts with **`To client:`**; they get it by email and in the portal. Other comments stay internal.
+- **Files**: upload up to 4 MB per file (stored as ClickUp attachments); files you attach to the task are visible to them too.
+- **Billing**: invoices, receipts, cards and subscriptions via Stripe's secure customer portal.
+
+ClickUp status → what the client sees: `to do`/`open` → Received · `in progress` → In progress · anything with `review` → In review · `complete`/`closed`/`done` → Delivered. Moving a task to In progress, In review or Delivered emails the client automatically.
+
+### Setup (about 10 minutes)
+1. **Secret**: generate a long random string (Git Bash: `openssl rand -hex 32`) and add it in Vercel as `PORTAL_SECRET`.
+2. **Subdomain**: Vercel → website-main → Settings → **Domains** → Add `portal.egowebservices.com`. Add the DNS record Vercel shows (a `CNAME` for `portal` → `cname.vercel-dns.com`) where your DNS is managed. (Until then, the portal also works at `www.egowebservices.com/portal` if you set `PORTAL_URL=https://www.egowebservices.com`.)
+3. **Redeploy**.
+4. **ClickUp notifications**: open `https://www.egowebservices.com/api/clickup?action=setup&key=YOUR_PORTAL_SECRET` once. It creates the ClickUp webhook and shows a secret. Add that as `CLICKUP_WEBHOOK_SECRET` in Vercel and **Redeploy** again.
+5. Test: open portal.egowebservices.com, sign in with an email that has an order, send a message, upload a file; in ClickUp reply with `To client: Hello!`.
+
+Security: sign-in links expire after 20 minutes; sessions last 30 days in an HttpOnly cookie; clients can only open tasks tagged with their own email; cross-site requests are blocked; uploads are size- and type-limited.

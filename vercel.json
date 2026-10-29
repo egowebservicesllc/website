@@ -7,6 +7,28 @@
   "trailingSlash": false,
   "redirects": [
     {
+      "source": "/",
+      "has": [
+        {
+          "type": "host",
+          "value": "portal.egowebservices.com"
+        }
+      ],
+      "destination": "/portal",
+      "permanent": false
+    },
+    {
+      "source": "/:path((?!portal|api/|assets/|badges/|images/|videos/|favicon|robots\\.txt|site\\.webmanifest|.*\\.(?:png|jpg|jpeg|svg|ico|webp|mp4|js|css|woff2?|json|txt|xml)$).*)",
+      "has": [
+        {
+          "type": "host",
+          "value": "portal.egowebservices.com"
+        }
+      ],
+      "destination": "https://www.egowebservices.com/:path",
+      "permanent": false
+    },
+    {
       "source": "/index",
       "destination": "/",
       "permanent": true

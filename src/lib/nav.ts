@@ -5,6 +5,7 @@
  * a fixed-price `pkg` also gets the automatic Stripe payment link.
  */
 import type { ServiceId } from "@/lib/site";
+import { checkoutHref, findCheckoutPackage } from "@/lib/checkout";
 
 export interface ServiceType {
   anchor: string;
@@ -51,7 +52,7 @@ export const SERVICE_MENU: ServiceCategory[] = [
     label: "Branding & Design",
     short: "Brands customers remember",
     types: [
-      { anchor: "graphic-design", label: "Graphic Design", desc: "Logos, brand identity, UI design and marketing collateral.", price: "Logos from $950", serviceId: "branding" },
+      { anchor: "graphic-design", label: "Graphic Design", desc: "Logos, brand identity, UI design and marketing collateral.", price: "Logos from $950", serviceId: "branding", pkg: "Logo Design" },
       { anchor: "video-animation", label: "Video Animation", desc: "Explainer videos, logo animations and social motion graphics.", price: "Custom quote", serviceId: "branding" },
     ],
   },
@@ -67,5 +68,9 @@ export const SERVICE_MENU: ServiceCategory[] = [
   },
 ];
 
+/** Fixed-price types go straight to the order form ("Buy now"). */
+export const canBuy = (t: ServiceType) => Boolean(t.pkg && findCheckoutPackage(t.serviceId, t.pkg));
+
 export const typeHref = (t: ServiceType) =>
-  t.href ?? `/contact?service=${t.serviceId}${t.pkg ? `&package=${encodeURIComponent(t.pkg)}` : ""}`;
+  t.href ??
+  (canBuy(t) ? checkoutHref(t.serviceId, t.pkg!) : `/contact?service=${t.serviceId}${t.pkg ? `&package=${encodeURIComponent(t.pkg)}` : ""}`);

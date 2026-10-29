@@ -10,6 +10,7 @@ import { CalendlyWidget } from "@/components/CalendlyWidget";
 import { FaqSection } from "@/components/FaqSection";
 import { PlatformLogos } from "@/components/PlatformLogos";
 import { googleCloudFeature } from "@/lib/packages";
+import { checkoutHref } from "@/lib/checkout";
 import { CountUp } from "@/components/ui/count-up";
 import { BUSINESS } from "@/lib/site";
 import { getLanding } from "@/lib/landing";
@@ -209,6 +210,16 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
                         </li>
                       ))}
                     </ul>
+                    {pkg.checkout ? (
+                      <div className="space-y-2">
+                        <Button asChild className="w-full h-12 rounded-xl text-base font-semibold">
+                          <Link href={checkoutHref(page.serviceId, pkg.name)}>Buy now</Link>
+                        </Button>
+                        <button type="button" onClick={() => pickPackage(pkg.name)} className="block w-full text-center text-sm font-semibold text-slate-500 hover:text-primary py-1">
+                          or get a quote first
+                        </button>
+                      </div>
+                    ) : (
                     <Button
                       variant={pkg.recommended ? "default" : "outline"}
                       className="w-full h-12 rounded-xl text-base font-semibold"
@@ -216,6 +227,7 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
                     >
                       Get a quote for this
                     </Button>
+                    )}
                   </div>
                 ))}
               </div>

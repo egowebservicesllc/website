@@ -89,6 +89,61 @@ export async function createPaymentLink(input: PaymentLinkInput): Promise<string
   return `${link.url}?prefilled_email=${encodeURIComponent(input.email)}`;
 }
 
+export interface CheckoutInput extends PaymentLinkInput {
+  successUrl: string;
+  cancelUrl: string;
+}
+
+/** Stripe Checkout for a "Buy now" order. Returns the hosted checkout URL. */
+export async function createCheckoutSession(input: CheckoutInput): Promise<string> {
+  const price = await ensurePrice({
+    lookupKey: input.lookupKey || `ego_custom_${input.ref.toLowerCase()}_${input.mode}_${input.amountCents}`,
+    productName: input.productName,
+    amountCents: input.amountCents,
+    mode: input.mode,
+    interval: input.interval,
+  });
+  const meta: Record<string, string> = { ref: input.ref, client_email: input.email, source: "buy_now" };
+  if (input.clickupTaskId) meta.clickup_task_id = input.clickupTaskId;
+  const params: Record<string, string | number | boolean> = {
+    mode: input.mode,
+    "line_items[0][price]": price,
+    "line_items[0][quantity]": 1,
+    customer_email: input.email,
+    client_reference_id: input.ref,
+    allow_promotion_codes: true,
+    billing_address_collection: "auto",
+    success_url: input.successUrl,
+    cancel_url: input.cancelUrl,
+  };
+  for (const [k, v] of Object.entries(meta)) {
+    params[`metadata[${k}]`] = v;
+    params[input.mode === "subscription" ? `subscription_data[metadata][${k}]` : `payment_intent_data[metadata][${k}]`] = v;
+  }
+  if (input.mode === "payment") {
+    params.customer_creation = "always";
+    params["invoice_creation[enabled]"] = true;
+  }
+  const session = await stripe("/checkout/sessions", params);
+  log("stripe_checkout_created", { ref: input.ref, id: session.id });
+  return session.url as string;
+}
+
+/** Stripe customer for an email (created by checkout / payment links). */
+export async function findCustomerId(email: string): Promise<string | null> {
+  if (!has.stripe()) return null;
+  const res = await stripe("/customers", { email: email.toLowerCase(), limit: 1 }, "GET");
+  if (res.data?.[0]?.id) return res.data[0].id;
+  const res2 = await stripe("/customers", { email, limit: 1 }, "GET");
+  return res2.data?.[0]?.id || null;
+}
+
+/** Stripe-hosted billing page: invoices, payment methods, subscriptions. */
+export async function billingPortalUrl(customerId: string, returnUrl: string): Promise<string> {
+  const s = await stripe("/billing_portal/sessions", { customer: customerId, return_url: returnUrl });
+  return s.url as string;
+}
+
 export async function getPaymentLinkMetadata(id: string): Promise<Record<string, string>> {
   try {
     const link = await stripe(`/payment_links/${id}`, undefined, "GET");

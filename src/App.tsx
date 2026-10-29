@@ -13,6 +13,8 @@ import Contact from '@/pages/Contact';
 import NotFound from '@/pages/not-found';
 import LandingPage from '@/pages/LandingPage';
 import ThankYou from '@/pages/ThankYou';
+import Checkout from '@/pages/Checkout';
+import Portal from '@/pages/Portal';
 import { Privacy, Terms } from '@/pages/Legal';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { EngagePrompt } from '@/components/EngagePrompt';
@@ -36,6 +38,8 @@ function Router() {
       <Route path="/support" component={Support} />
       <Route path="/contact" component={Contact} />
       <Route path="/thank-you" component={ThankYou} />
+      <Route path="/checkout" component={Checkout} />
+      <Route path="/portal" component={Portal} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/lp/:slug" component={LandingPage} />

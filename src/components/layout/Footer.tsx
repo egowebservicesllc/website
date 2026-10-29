@@ -138,6 +138,7 @@ export function Footer() {
                 { title: "Portfolio", path: "/portfolio" },
                 { title: "Pricing", path: "/pricing" },
                 { title: "Support", path: "/support" },
+                { title: "Client portal", path: "/portal" },
                 { title: "Contact", path: "/contact" },
               ].map((item, i) => (
                 <li key={i}>

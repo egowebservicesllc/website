@@ -226,6 +226,20 @@ PAGES["/thank-you"] = {
   description: "Thanks for contacting EGO Web Services. A senior engineer will be in touch shortly.",
   noindex: true,
 };
+PAGES["/checkout"] = {
+  path: "/checkout",
+  name: "Checkout",
+  title: "Order Online: Secure Checkout",
+  description: "Order a fixed-price EGO Web Services package online and pay securely with Stripe.",
+  noindex: true,
+};
+PAGES["/portal"] = {
+  path: "/portal",
+  name: "Client portal",
+  title: "Client Portal: Orders, Messages & Billing",
+  description: "Sign in to follow your EGO Web Services orders, message our team, share files and manage billing.",
+  noindex: true,
+};
 PAGES["/privacy"] = {
   path: "/privacy",
   name: "Privacy Policy",

@@ -40,6 +40,11 @@ export default function ThankYou() {
               ? `Your project is booked${ref ? ` (reference ${ref})` : ""}. Stripe has emailed your receipt, and a senior engineer will contact you within ${BUSINESS.responseTime} to kick things off. You can also pick a kickoff time below.`
               : `A senior engineer will review your project and reply within ${BUSINESS.responseTime}. We've just emailed you a confirmation; check your spam folder if you don't see it.`}
           </p>
+          <p className="mt-8">
+            <Link href="/portal" className="inline-flex items-center gap-2 rounded-full bg-primary text-white px-6 py-3 font-semibold hover:bg-primary/90">
+              Track it in your client portal
+            </Link>
+          </p>
         </div>
       </section>
 

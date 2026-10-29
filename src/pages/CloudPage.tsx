@@ -15,6 +15,7 @@ import { CLOUD_PAGES, CLOUD_COMPARE, getCloudPage, type CloudIcon } from "@/lib/
 import { SERVICES as PRICING } from "@/pages/Pricing";
 import { cn } from "@/lib/utils";
 import { googleCloudFeature } from "@/lib/packages";
+import { checkoutHref } from "@/lib/checkout";
 import NotFound from "@/pages/not-found";
 
 const ICONS: Record<CloudIcon, typeof Cloud> = {
@@ -298,11 +299,20 @@ export default function CloudPage({ path }: { path: string }) {
                       </li>
                     ))}
                   </ul>
-                  <Button asChild variant={pkg.recommended ? "default" : "outline"} className="w-full h-12 rounded-xl font-semibold">
-                    <Link href={`/contact?service=${page.pricingTab}&package=${encodeURIComponent(pkg.name)}`}>
-                      {pkg.price === "Custom" ? "Discuss Requirements" : "Get a Quote"}
-                    </Link>
-                  </Button>
+                  {pkg.checkout ? (
+                    <div className="space-y-2">
+                      <Button asChild className="w-full h-12 rounded-xl font-semibold">
+                        <Link href={checkoutHref(page.pricingTab, pkg.name)}>Buy now</Link>
+                      </Button>
+                      <Link href={`/contact?service=${page.pricingTab}&package=${encodeURIComponent(pkg.name)}`} className="block text-center text-sm font-semibold text-slate-500 hover:text-primary py-1">or ask a question first</Link>
+                    </div>
+                  ) : (
+                    <Button asChild variant={pkg.recommended ? "default" : "outline"} className="w-full h-12 rounded-xl font-semibold">
+                      <Link href={`/contact?service=${page.pricingTab}&package=${encodeURIComponent(pkg.name)}`}>
+                        {pkg.price === "Custom" ? "Discuss Requirements" : "Get a Quote"}
+                      </Link>
+                    </Button>
+                  )}
                 </div>
               ))}
             </div>
