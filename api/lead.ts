@@ -3,17 +3,23 @@
  * a submission (the MailerLite form itself is unchanged).
  *
  * 1. Creates a ClickUp task for the request
- * 2. Fixed-price package → creates a Stripe payment link
- * 3. Emails the client an instant branded confirmation (+ payment link if any)
- * 4. Posts the lead to Slack: either "auto-handled", or an AI-drafted reply
- *    with Send / Edit & send buttons (handled by /api/slack/actions)
+ * 2. Fixed-price package → creates a Stripe payment link and returns it, so
+ *    the page sends the client straight to payment (no approval needed)
+ * Then, after the response (so the redirect is instant):
+ * 3. Client email from notifications@: fixed package → AI-written "request
+ *    received + what you'll get" with the payment button; otherwise the
+ *    standard confirmation
+ * 4. Slack: fixed package → "auto-handled"; custom/quote → AI-drafted reply
+ *    with Send / Edit & send buttons (a human sends it, /api/slack/actions)
+ * 5. Copy to the team inbox (info@) with all details (+ the AI draft)
  */
+import { waitUntil } from "@vercel/functions";
 import { ENV, has, log } from "./_lib/env.js";
 import { createLeadTask, commentOnTask, taskUrl } from "./_lib/clickup.js";
 import { createPaymentLink, formatMoney } from "./_lib/stripe.js";
-import { sendEmail } from "./_lib/email.js";
-import { confirmationEmail } from "./_lib/templates.js";
-import { draftReply } from "./_lib/ai.js";
+import { sendNotification, sendTeamCopy } from "./_lib/email.js";
+import { confirmationEmail, fixedOrderEmail, teamCopyEmail } from "./_lib/templates.js";
+import { draftReply, writeFixedEmail } from "./_lib/ai.js";
 import { autoBlocks, draftBlocks, postMessage } from "./_lib/slack.js";
 import { findPackage, serviceByLabel } from "../src/lib/packages.js";
 import type { Lead } from "./_lib/types.js";
@@ -124,21 +130,50 @@ export async function POST(request: Request) {
     }
   }
 
-  // 3. Instant confirmation to the client
-  const mail = confirmationEmail(lead, { paymentUrl, priceLabel, packageLabel });
-  await sendEmail(email, mail.subject, mail.html, mail.text, ENV.internalNotifyEmail || undefined).catch((err) =>
-    log("email_failed", { ref: lead.ref, error: String(err) }),
+  // 3-5 run after the response, so a fixed-package client is redirected to payment right away.
+  waitUntil(
+    notify({ lead, task, paymentUrl, priceLabel, packageLabel, fixed: Boolean(checkout && service && pkg), serviceId: service?.id, serviceTitle: service?.title }).catch((err) =>
+      log("notify_failed", { ref: lead.ref, error: String(err) }),
+    ),
   );
 
-  // 4. Slack
+  return json(200, { ok: true, ref: lead.ref, paymentUrl: paymentUrl || null });
+}
+
+async function notify(o: {
+  lead: Lead;
+  task: { id: string; url: string } | null;
+  paymentUrl?: string;
+  priceLabel?: string;
+  packageLabel?: string;
+  fixed: boolean;
+  serviceId?: string;
+  serviceTitle?: string;
+}) {
+  const { lead, task, paymentUrl, priceLabel, packageLabel } = o;
+
+  // 3. Client email (notifications@)
+  if (o.fixed && packageLabel && priceLabel) {
+    const body = await writeFixedEmail("order_received", {
+      lead, serviceId: o.serviceId || "", serviceTitle: o.serviceTitle || "", packageName: packageLabel, priceLabel, paymentReady: Boolean(paymentUrl),
+    });
+    const mail = fixedOrderEmail(lead.ref, body.text, { packageLabel, priceLabel, paymentUrl });
+    await sendNotification(lead.email, mail.subject, mail.html, mail.text);
+    await commentOnTask(task?.id, `🤖 ${body.ai ? "AI-written" : "Standard"} "request received" email sent to the client from notifications@.`);
+  } else {
+    const mail = confirmationEmail(lead, { packageLabel });
+    await sendNotification(lead.email, mail.subject, mail.html, mail.text);
+  }
+
+  // 4. Slack: auto-handled, or an AI draft for a human to approve and send
+  const draft = paymentUrl ? undefined : await draftReply(lead);
   if (has.slack()) {
     try {
       if (paymentUrl && priceLabel) {
         await postMessage(autoBlocks(lead, paymentUrl, priceLabel, taskUrl(task?.id)), `New request from ${lead.name} (auto-handled)`);
-      } else {
-        const draft = await draftReply(lead);
+      } else if (draft) {
         await postMessage(
-          draftBlocks(lead, draft.text, { r: lead.ref, e: email, n: name, t: task?.id, s: packageLabel || lead.services[0] }, taskUrl(task?.id), draft.ai),
+          draftBlocks(lead, draft.text, { r: lead.ref, e: lead.email, n: lead.name, t: task?.id, s: packageLabel || lead.services[0] }, taskUrl(task?.id), draft.ai),
           `New request from ${lead.name}: reply draft ready`,
         );
       }
@@ -147,5 +182,33 @@ export async function POST(request: Request) {
     }
   }
 
-  return json(200, { ok: true, ref: lead.ref, paymentUrl: paymentUrl || null });
+  // 5. Team inbox copy (info@)
+  const copy = teamCopyEmail({
+    kind: "lead",
+    ref: lead.ref,
+    title: packageLabel || lead.services.join(", ") || "General enquiry",
+    clientName: lead.name,
+    clientEmail: lead.email,
+    rows: [
+      ["Name", lead.name],
+      ["Email", lead.email],
+      ["Company", lead.company],
+      ["Phone", lead.phone],
+      ["Country", lead.country],
+      ["Services", lead.services.join(", ") || undefined],
+      ["Package", packageLabel ? `${packageLabel}${priceLabel ? ` (${priceLabel})` : ""}` : undefined],
+      ["Timeline", lead.timeline],
+      ["Source", lead.source],
+      ["Page", lead.page],
+    ],
+    message: lead.message,
+    taskId: task?.id,
+    status: paymentUrl
+      ? `Fixed-price package: client sent straight to Stripe payment (${priceLabel}) and emailed the payment link automatically. Nothing to approve.`
+      : o.fixed
+        ? "Fixed-price package, but Stripe isn't connected, so no payment link was created. Send a price from Slack (Edit, add price & send)."
+        : "Confirmation sent to the client. Reply draft below is waiting for a human to review and send.",
+    draft,
+  });
+  await sendTeamCopy(copy.subject, copy.html, copy.text, lead.email);
 }

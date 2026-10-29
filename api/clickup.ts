@@ -9,7 +9,7 @@
 import crypto from "node:crypto";
 import { ENV, has, log } from "./_lib/env.js";
 import { createWebhook, emailFromTask, getComments, getTask, taskTitle } from "./_lib/clickup.js";
-import { sendEmail } from "./_lib/email.js";
+import { sendEmail, sendNotification } from "./_lib/email.js";
 import { statusUpdateEmail, teamMessageEmail } from "./_lib/templates.js";
 import { STAGES, refOf, stageOf } from "./_lib/portal.js";
 
@@ -77,7 +77,7 @@ export async function POST(request: Request) {
       const after = stageOf(task.status?.status);
       if (after > 0 && after !== before) {
         const mail = statusUpdateEmail(title, ref, STAGES[after]);
-        await sendEmail(to, mail.subject, mail.html, mail.text);
+        await sendNotification(to, mail.subject, mail.html, mail.text);
         log("client_notified_status", { taskId, ref, stage: STAGES[after] });
       }
     }

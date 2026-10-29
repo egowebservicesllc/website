@@ -30,7 +30,14 @@ ${opts.footnote ? `<p style="margin:24px 0 0;font-size:13px;color:#64748b">${esc
 </table></td></tr></table></body></html>`;
 }
 
-export async function sendEmail(to: string, subject: string, html: string, text: string, bcc?: string) {
+export interface SendOptions {
+  from?: string; // defaults to EMAIL_FROM (human replies); automatic emails pass ENV.emailFromNotifications
+  replyTo?: string; // defaults to EMAIL_REPLY_TO
+  bcc?: string;
+}
+
+export async function sendEmail(to: string, subject: string, html: string, text: string, opts: SendOptions | string = {}) {
+  const o: SendOptions = typeof opts === "string" ? { bcc: opts } : opts;
   if (!has.email()) {
     log("email_skipped_no_provider", { to, subject });
     return false;
@@ -38,14 +45,32 @@ export async function sendEmail(to: string, subject: string, html: string, text:
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${ENV.resendApiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: ENV.emailFrom, to: [to], reply_to: ENV.emailReplyTo, subject, html, text, ...(bcc ? { bcc: [bcc] } : {}) }),
+    body: JSON.stringify({
+      from: o.from || ENV.emailFrom,
+      to: [to],
+      reply_to: o.replyTo || ENV.emailReplyTo,
+      subject,
+      html,
+      text,
+      ...(o.bcc ? { bcc: [o.bcc] } : {}),
+    }),
   });
   if (!res.ok) {
     log("email_failed", { to, status: res.status, body: (await res.text()).slice(0, 300) });
     return false;
   }
-  log("email_sent", { to, subject });
+  log("email_sent", { to, subject, from: o.from || ENV.emailFrom });
   return true;
+}
+
+/** Automatic email to a client, sent from notifications@ (replies still go to EMAIL_REPLY_TO). */
+export const sendNotification = (to: string, subject: string, html: string, text: string) =>
+  sendEmail(to, subject, html, text, { from: ENV.emailFromNotifications });
+
+/** Copy for the team inbox (info@). Reply-To is the client, so "Reply" in your mail app answers them. */
+export async function sendTeamCopy(subject: string, html: string, text: string, clientEmail?: string) {
+  if (!ENV.teamNotifyEmail) return false;
+  return sendEmail(ENV.teamNotifyEmail, subject, html, text, { from: ENV.emailFromNotifications, replyTo: clientEmail || ENV.emailReplyTo });
 }
 
 export { textToHtml };

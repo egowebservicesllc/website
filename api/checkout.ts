@@ -8,6 +8,8 @@ import { ENV, has, log } from "./_lib/env.js";
 import { createLeadTask, taskUrl } from "./_lib/clickup.js";
 import { createCheckoutSession, formatMoney } from "./_lib/stripe.js";
 import { postMessage } from "./_lib/slack.js";
+import { sendTeamCopy } from "./_lib/email.js";
+import { teamCopyEmail } from "./_lib/templates.js";
 import { clientIp, json, rateLimited, sameOrigin } from "./_lib/portal.js";
 import { ORDER_FIELDS, findCheckoutPackage } from "../src/lib/checkout.js";
 import type { Lead } from "./_lib/types.js";
@@ -117,6 +119,19 @@ export async function POST(request: Request) {
       `New order: ${pkg.name} from ${name} (awaiting payment)`,
     ).catch((err) => log("slack_failed", { ref, error: String(err) }));
   }
+
+  const copy = teamCopyEmail({
+    kind: "order",
+    ref,
+    title: `${pkg.name} (${price})`,
+    clientName: name,
+    clientEmail: email,
+    rows: [["Name", name], ["Email", email], ["Company", lead.company], ["Phone", lead.phone], ["Country", lead.country], ["Order", `${service.title}: ${pkg.name} (${price})`], ...details, ["Source", lead.source]],
+    message: notes || undefined,
+    taskId: task?.id,
+    status: "Client is on Stripe checkout now (awaiting payment). You'll get a 💰 payment email and Slack message when it's paid. Nothing to approve.",
+  });
+  await sendTeamCopy(copy.subject, copy.html, copy.text, email).catch((err) => log("team_copy_failed", { ref, error: String(err) }));
 
   return json(200, { ok: true, ref, url });
 }

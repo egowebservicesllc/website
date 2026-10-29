@@ -1,5 +1,6 @@
 import { ENV } from "./env.js";
 import { layout, textToHtml } from "./email.js";
+import { taskUrl } from "./clickup.js";
 import type { Lead } from "./types.js";
 
 const firstName = (n: string) => n.split(/\s+/)[0] || "there";
@@ -59,8 +60,19 @@ export function replyEmail(clientName: string, ref: string, body: string, paymen
   return { subject: `Re: your request to EGO Web Services (${ref})`, text, html };
 }
 
-export function paymentReceivedEmail(name: string, ref: string, amountLabel: string, orderTitle?: string) {
+export function paymentReceivedEmail(name: string, ref: string, amountLabel: string, orderTitle?: string, aiBody?: string) {
   const what = orderTitle ? ` for ${orderTitle}` : "";
+  if (aiBody) {
+    const text = `${aiBody}\n\nFollow your order, message our team and upload files in your client portal: ${ENV.portalUrl}\n\nReference: ${ref}`;
+    const html = layout({
+      heading: "Payment received, thank you!",
+      bodyHtml: textToHtml(aiBody),
+      ctaLabel: "Open your client portal",
+      ctaUrl: ENV.portalUrl,
+      footnote: `Reference ${ref} · ${amountLabel}. Sign in to the portal with this email address.`,
+    });
+    return { subject: `Payment received: ${orderTitle || "your order"} (${ref})`, text, html };
+  }
   const text = `Hi ${firstName(name)},
 
 Thank you, we've received your payment of ${amountLabel}${what} (reference ${ref}).
@@ -123,4 +135,77 @@ export function statusUpdateEmail(orderTitle: string, ref: string, stageLabel: s
     footnote: ref ? `Order reference ${ref}` : undefined,
   });
   return { subject: `${stageLabel}: ${orderTitle}${ref ? ` (${ref})` : ""}`, text, html };
+}
+
+/** Fixed-price package request received (AI-written body + secure payment button). */
+export function fixedOrderEmail(ref: string, body: string, opts: { packageLabel: string; priceLabel: string; paymentUrl?: string }) {
+  const text = opts.paymentUrl ? `${body}\n\nPay securely (${opts.priceLabel}): ${opts.paymentUrl}\n\nReference: ${ref}` : `${body}\n\nReference: ${ref}`;
+  const html = layout({
+    heading: `Your ${opts.packageLabel} request is in`,
+    bodyHtml:
+      textToHtml(body) +
+      `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f1f5f9;border-radius:12px;margin:8px 0 0"><tr><td style="padding:14px 20px;font-size:14px;line-height:1.7">Package: ${esc(opts.packageLabel)} (${esc(opts.priceLabel)})<br>Reference: ${esc(ref)}</td></tr></table>`,
+    ctaLabel: opts.paymentUrl ? `Pay securely: ${opts.priceLabel}` : undefined,
+    ctaUrl: opts.paymentUrl,
+    footnote: opts.paymentUrl ? "Payments are processed securely by Stripe. You'll receive a receipt by email." : undefined,
+  });
+  return { subject: `We've received your ${opts.packageLabel} request (${ref})`, text, html };
+}
+
+const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/**
+ * Copy of a lead/order/payment for the team inbox (info@). Reply-To is the
+ * client, so pressing Reply answers them directly.
+ */
+export function teamCopyEmail(opts: {
+  kind: "lead" | "order" | "payment";
+  ref: string;
+  title: string; // e.g. "Logo Design" or "Web Development"
+  clientName: string;
+  clientEmail: string;
+  rows: [string, string | undefined][];
+  message?: string;
+  taskId?: string;
+  status: string; // what the automation already did
+  draft?: { text: string; ai: boolean }; // reply draft for a human to send
+}) {
+  const icon = opts.kind === "payment" ? "💰" : opts.kind === "order" ? "🛒" : "🆕";
+  const label = opts.kind === "payment" ? "Payment received" : opts.kind === "order" ? "New order" : "New request";
+  const subject = `${icon} ${label}: ${opts.title} from ${opts.clientName} (${opts.ref})`;
+  const rows = opts.rows.filter(([, v]) => v) as [string, string][];
+  const url = taskUrl(opts.taskId);
+  const replySubject = `Re: your request to EGO Web Services (${opts.ref})`;
+  const mailto = opts.draft
+    ? `mailto:${encodeURIComponent(opts.clientEmail)}?subject=${encodeURIComponent(replySubject)}&body=${encodeURIComponent(opts.draft.text.slice(0, 1800))}`
+    : "";
+
+  const text = [
+    `${label}: ${opts.title}`,
+    "",
+    ...rows.map(([k, v]) => `${k}: ${v}`),
+    opts.message ? `\nMessage:\n${opts.message}` : "",
+    `\nStatus: ${opts.status}`,
+    url ? `ClickUp: ${url}` : "",
+    opts.draft ? `\n--- ${opts.draft.ai ? "AI-drafted reply" : "Suggested reply"} (review, then send) ---\n${opts.draft.text}\n---\nSend it from Slack (Send reply / Edit, add price & send), or press Reply here: this email's Reply-To is the client.` : "",
+  ].filter((l) => l !== "").join("\n");
+
+  const table = `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;font-size:14px;line-height:1.6;margin:0 0 16px">${rows
+    .map(([k, v]) => `<tr><td style="padding:4px 12px 4px 0;color:#64748b;white-space:nowrap;vertical-align:top">${esc(k)}</td><td style="padding:4px 0">${esc(v).replace(/\n/g, "<br>")}</td></tr>`)
+    .join("")}</table>`;
+  const bodyHtml =
+    table +
+    (opts.message ? `<p style="margin:0 0 6px;font-weight:700">Message</p><div style="background:#f1f5f9;border-radius:12px;padding:14px 18px;margin:0 0 16px;font-size:14px">${textToHtml(opts.message)}</div>` : "") +
+    `<p style="margin:0 0 16px;font-size:14px"><strong>Status:</strong> ${esc(opts.status)}${url ? ` · <a href="${url}" style="color:#005fc2">Open in ClickUp</a>` : ""}</p>` +
+    (opts.draft
+      ? `<p style="margin:0 0 6px;font-weight:700">${opts.draft.ai ? "✍️ AI-drafted reply" : "✍️ Suggested reply"} (review before sending)</p><div style="border:2px dashed #93c5fd;border-radius:12px;padding:14px 18px;margin:0 0 12px;font-size:14px">${textToHtml(opts.draft.text)}</div><p style="margin:0;font-size:13px;color:#64748b">Send it from Slack (<em>Send reply</em> or <em>Edit, add price &amp; send</em>), or use the button to open it in your mail app. Replying to this email also goes straight to the client.</p>`
+      : "");
+  const html = layout({
+    heading: `${label}: ${opts.title}`,
+    bodyHtml,
+    ctaLabel: opts.draft ? "Open reply in my mail app" : url ? "Open in ClickUp" : undefined,
+    ctaUrl: opts.draft ? mailto : url,
+    footnote: `${opts.clientName} · ${opts.clientEmail} · Ref ${opts.ref}`,
+  });
+  return { subject, text, html };
 }

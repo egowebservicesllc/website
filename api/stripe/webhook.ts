@@ -1,7 +1,8 @@
 /**
  * POST /api/stripe/webhook: Stripe tells us a payment-link checkout was paid.
- * → ClickUp comment (+ "paid" status), Slack alert, and a "payment received"
- *   email to the client with the kickoff-call link.
+ * → ClickUp comment (+ "paid" status), Slack alert, an AI-written "payment
+ *   received + what happens next" email to the client (from notifications@)
+ *   and a copy for the team inbox (info@).
  * Subscribe this endpoint to: checkout.session.completed,
  * checkout.session.async_payment_succeeded
  */
@@ -9,8 +10,10 @@ import { ENV, has, log } from "../_lib/env.js";
 import { formatMoney, getPaymentLinkMetadata, verifyStripeSignature } from "../_lib/stripe.js";
 import { addTag, commentOnTask, getTask, removeTag, setTaskStatus, taskTitle, taskUrl } from "../_lib/clickup.js";
 import { postMessage } from "../_lib/slack.js";
-import { sendEmail } from "../_lib/email.js";
-import { paymentReceivedEmail } from "../_lib/templates.js";
+import { sendNotification, sendTeamCopy } from "../_lib/email.js";
+import { paymentReceivedEmail, teamCopyEmail } from "../_lib/templates.js";
+import { writeFixedEmail } from "../_lib/ai.js";
+import { PACKAGE_SERVICES } from "../../src/lib/packages.js";
 
 const seen = new Set<string>();
 
@@ -60,8 +63,36 @@ export async function POST(request: Request) {
   }
 
   if (email) {
-    const mail = paymentReceivedEmail(name, ref, amount, orderTitle);
-    await sendEmail(email, mail.subject, mail.html, mail.text);
+    // Fixed-price package? Write a tailored "what happens next" email with AI.
+    const found = orderTitle
+      ? PACKAGE_SERVICES.flatMap((sv) => sv.packages.filter((p) => p.checkout && orderTitle!.startsWith(p.name)).map((p) => ({ sv, p })))[0]
+      : undefined;
+    let aiBody: string | undefined;
+    if (found) {
+      const body = await writeFixedEmail("payment_received", {
+        lead: { ref, name, email, message: "", services: [found.sv.title], serviceId: found.sv.id, packageName: found.p.name, receivedAt: new Date().toISOString() },
+        serviceId: found.sv.id,
+        serviceTitle: found.sv.title,
+        packageName: found.p.name,
+        priceLabel: amount,
+        paymentReady: false,
+      });
+      aiBody = body.text;
+    }
+    const mail = paymentReceivedEmail(name, ref, amount, orderTitle, aiBody);
+    await sendNotification(email, mail.subject, mail.html, mail.text);
   }
+
+  const copy = teamCopyEmail({
+    kind: "payment",
+    ref,
+    title: `${orderTitle || "Order"} (${amount})`,
+    clientName: name,
+    clientEmail: email,
+    rows: [["Name", name], ["Email", email], ["Amount", amount], ["Order", orderTitle], ["Stripe session", session.id]],
+    taskId: meta.clickup_task_id,
+    status: "Paid. The client was emailed what happens next and a link to the client portal. Next: deliver the onboarding details.",
+  });
+  await sendTeamCopy(copy.subject, copy.html, copy.text, email);
   return new Response("ok");
 }

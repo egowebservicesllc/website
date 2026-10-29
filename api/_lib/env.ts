@@ -32,7 +32,10 @@ export const ENV = {
   resendApiKey: e("RESEND_API_KEY"),
   emailFrom: e("EMAIL_FROM", "EGO Web Services <hello@egowebservices.com>"),
   emailReplyTo: e("EMAIL_REPLY_TO", "info@egowebservices.com"),
-  internalNotifyEmail: e("INTERNAL_NOTIFY_EMAIL"), // optional copy of every lead
+  // Automatic emails (confirmations, payment receipts, sign-in links, status updates)
+  emailFromNotifications: e("EMAIL_FROM_NOTIFICATIONS", "EGO Web Services <notifications@egowebservices.com>"),
+  // Team copy of every lead and order (full details + AI draft). INTERNAL_NOTIFY_EMAIL is the old name.
+  teamNotifyEmail: e("TEAM_NOTIFY_EMAIL", e("INTERNAL_NOTIFY_EMAIL", "info@egowebservices.com")),
   signatureName: e("SIGNATURE_NAME", "The EGO Web Services team"),
   calendlyUrl: e("CALENDLY_URL", "https://calendly.com/egowebservices/30min"),
   responseTime: e("RESPONSE_TIME", "1 business day"),

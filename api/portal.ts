@@ -15,7 +15,7 @@ import { ENV, has, log } from "./_lib/env.js";
 import { addTag, commentOnTask, getClientTask, getComments, listClientTasks, taskUrl, uploadAttachment } from "./_lib/clickup.js";
 import { billingPortalUrl, findCustomerId } from "./_lib/stripe.js";
 import { postMessage } from "./_lib/slack.js";
-import { sendEmail } from "./_lib/email.js";
+import { sendNotification } from "./_lib/email.js";
 import { magicLinkEmail } from "./_lib/templates.js";
 import {
   clearCookie, clientIp, clientMessages, json, orderSummary, rateLimited, sameOrigin, sessionCookie, sessionEmail, signToken, verifyToken,
@@ -54,7 +54,7 @@ async function handle(request: Request, method: "GET" | "POST") {
     }
     const link = `${ENV.portalUrl}/portal?token=${encodeURIComponent(signToken(email, "login", 20 * 60))}`;
     const mail = magicLinkEmail(link);
-    await sendEmail(email, mail.subject, mail.html, mail.text).catch((err) => log("portal_login_email_failed", { error: String(err) }));
+    await sendNotification(email, mail.subject, mail.html, mail.text).catch((err) => log("portal_login_email_failed", { error: String(err) }));
     log("portal_login_requested", { email });
     return json(200, { ok: true }); // same answer whether or not the email has orders
   }

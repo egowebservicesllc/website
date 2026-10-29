@@ -1,31 +1,44 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'wouter';
-import { Check, CalendarDays } from 'lucide-react';
+import { Check, CalendarDays, Loader2, Lock } from 'lucide-react';
 import { navigate } from 'wouter/use-browser-location';
 import { BUSINESS, SERVICE_OPTIONS, type ServiceId } from '@/lib/site';
 import { attributionSummary } from '@/lib/ads';
 import { trackLead } from '@/lib/track';
+import { findCheckoutPackage } from '@/lib/checkout';
 import { cn } from '@/lib/utils';
 
 const SERVICE_PREFIX = '[Service: ';
 
 export const SELECT_PACKAGE_EVENT = 'ego-select-package';
 
+type LeadResult = { ok?: boolean; ref?: string; paymentUrl?: string | null } | null;
+const pendingLeads = new Map<string, Promise<LeadResult>>();
+
 /** Sends the lead to the automation (/api/lead) once per unique submission. */
-function sendLead(payload: Record<string, unknown>) {
+function sendLead(payload: Record<string, unknown>): Promise<LeadResult> {
   const key = `ego_lead_${String(payload.email || '').toLowerCase()}_${String(payload.message || '').length}`;
+  const existing = pendingLeads.get(key);
+  if (existing) return existing;
   try {
-    if (sessionStorage.getItem(key)) return;
+    if (sessionStorage.getItem(key)) return Promise.resolve(null);
     sessionStorage.setItem(key, '1');
   } catch (e) {}
+  let p: Promise<LeadResult>;
   try {
-    fetch('/api/lead', {
+    p = fetch('/api/lead', {
       method: 'POST',
       keepalive: true,
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).catch(() => {});
-  } catch (e) {}
+    })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null);
+  } catch (e) {
+    p = Promise.resolve(null);
+  }
+  pendingLeads.set(key, p);
+  return p;
 }
 
 export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = ({ defaultService }) => {
@@ -41,6 +54,26 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
   const submittedRef = useRef<Record<string, string> | null>(null);
   servicesRef.current = services;
   pkgRef.current = pkg;
+  // Fixed-price package picked: after submitting, the visitor goes straight to Stripe.
+  const [redirecting, setRedirecting] = useState(false);
+  const payRedirectRef = useRef(false);
+  const currentServiceId = () => SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id;
+  const isFixedPackage = () => Boolean(pkgRef.current && findCheckoutPackage(currentServiceId(), pkgRef.current.split(' · ')[0].trim()));
+  const goToPayment = (p: Promise<LeadResult>) => {
+    if (payRedirectRef.current) return;
+    payRedirectRef.current = true;
+    setRedirecting(true);
+    p.then((d) => {
+      if (d?.paymentUrl && /^https:\/\/[a-z0-9.-]*stripe\.com\//i.test(d.paymentUrl)) {
+        window.setTimeout(() => window.location.assign(d.paymentUrl as string), 900);
+      } else {
+        // No payment link (online payment not switched on): normal thank-you page.
+        setRedirecting(false);
+        const svc = currentServiceId();
+        navigate(`/thank-you${svc ? `?service=${svc}` : ''}`);
+      }
+    });
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -94,13 +127,14 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
       if (resp) captchaOk = true;
     } catch (err) {}
     if (snap && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(snap.email) && snap.name && snap.message && captchaOk) {
-      sendLead({
+      const p = sendLead({
         ...snap,
         services: servicesRef.current,
-        serviceId: SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id,
+        serviceId: currentServiceId(),
         package: pkgRef.current || undefined,
         page: window.location.pathname,
       });
+      if (isFixedPackage()) goToPayment(p);
     }
     if (!parts.length || !original.trim()) return;
     const prefix = `${parts.join(' ')}\n\n`;
@@ -132,20 +166,23 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
       const snap = submittedRef.current;
       if (snap?.email) {
         submittedRef.current = null;
-        sendLead({
+        const p = sendLead({
           ...snap,
           services: servicesRef.current,
-          serviceId: SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id,
+          serviceId: currentServiceId(),
           package: pkgRef.current || undefined,
           page: window.location.pathname,
         });
+        if (isFixedPackage()) goToPayment(p);
       }
 
       trackLead('contact_form', { services: servicesRef.current.join(', ') || 'unspecified', package: pkgRef.current || undefined });
 
       // Dedicated thank-you URL: ad platforms can also count conversions by URL.
+      // (Fixed-price packages go to Stripe instead; see goToPayment.)
       window.setTimeout(() => {
-        const svc = SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id;
+        if (payRedirectRef.current) return;
+        const svc = currentServiceId();
         navigate(`/thank-you${svc ? `?service=${svc}` : ''}`);
       }, 400);
 
@@ -232,6 +269,15 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
 
   return (
     <div className="w-full" onSubmitCapture={onSubmitCapture}>
+      {redirecting && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-white/90 backdrop-blur-sm px-4" role="status" aria-live="polite">
+          <div className="max-w-sm text-center">
+            <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto mb-4" />
+            <p className="text-xl font-bold text-slate-900">Request received</p>
+            <p className="mt-2 text-slate-600 flex items-center justify-center gap-2"><Lock className="w-4 h-4" /> Taking you to secure payment…</p>
+          </div>
+        </div>
+      )}
       <style>{`
         #mlb2-42026726.ml-form-embedContainer {
           background-color: transparent !important;

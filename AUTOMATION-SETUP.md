@@ -6,12 +6,12 @@ Runs as Vercel serverless functions inside this repo (`/api`). The MailerLite fo
 
 | When | Automatically |
 |---|---|
-| Someone submits the contact form | ClickUp task created (priority from their timeline) · branded confirmation email sent to the client · Slack message in your leads channel |
-| They picked a **fixed-price package** (Cloud Readiness Assessment $2,000 · Basic Hosting $9/mo · Performance VPS $45/mo · Dedicated Server $150/mo · Logo Design $950 · Complete Brand $2,800) | A single-use Stripe payment link is created and included in the confirmation email. Slack shows "auto-handled". |
-| Anything else (custom work) | An AI-drafted reply appears in Slack with **Send reply** and **Edit, add price & send** |
+| Someone submits the contact form | ClickUp task created (priority from their timeline) · confirmation email to the client from **notifications@** · Slack message in your leads channel · **full copy to info@** |
+| They picked a **fixed-price package** (Cloud Readiness Assessment $2,000 · Basic Hosting $9/mo · Performance VPS $45/mo · Dedicated Server $150/mo · Logo Design $950 · Complete Brand $2,800) | No approval: the visitor is **taken straight to Stripe payment** after submitting. They also get an **AI-written** email from notifications@ ("request received, here's what you'll get") with the payment button. Slack shows "auto-handled". |
+| Anything else (custom work, quotes) | An **AI-drafted reply** appears in Slack (and in the info@ copy) with **Send reply** and **Edit, add price & send**. A person reviews and sends it. In the info@ email you can also press Reply (it goes to the client) or "Open reply in my mail app". |
 | You click **Send reply** | Draft emailed to the client · ClickUp comment (+ status) · Slack message marked "sent" |
 | You click **Edit, add price & send** | Edit the text, optionally enter an amount (one-time or monthly). A Stripe payment link for that amount is created and added to the email. |
-| The client pays | ClickUp comment (+ "paid" status) · Slack 💰 alert · "payment received" email with the kickoff-call link · client lands on `/thank-you?paid=1` |
+| The client pays | ClickUp comment (+ "paid" status) · Slack 💰 alert · **AI-written** "payment received + what happens next" email from notifications@ (e.g. hosting: access details and DNS settings are coming) · copy to info@ · client lands on `/thank-you?paid=1` |
 
 Each piece switches on when its keys are present, so you can set up one at a time. Only Stripe is used. The PayPal account is suspended, so it's left out. (Its address, `admin@egowebserivces.com`, also looks misspelled: "serivces".)
 
@@ -22,7 +22,8 @@ Add every value below in **Vercel → Project → Settings → Environment Varia
 ### 1. Email (Resend)
 1. Create an account at resend.com → **Domains** → add `egowebservices.com` → add the DNS records it shows (SPF/DKIM) at your DNS host → wait for "Verified".
 2. **API Keys** → create one with "Sending access" → `RESEND_API_KEY`.
-3. Optional: `INTERNAL_NOTIFY_EMAIL=info@egowebservices.com` to BCC yourself on every confirmation.
+3. Senders: automatic emails come from `notifications@egowebservices.com` and replies a person sends from Slack come from `EMAIL_FROM` (hello@). Any address on the verified domain works, no mailbox needed. Client replies go to `EMAIL_REPLY_TO` (info@).
+4. `TEAM_NOTIFY_EMAIL` (default `info@egowebservices.com`) gets a copy of every lead, order and payment, including the AI reply draft.
 
 ### 2. ClickUp
 1. Avatar → **Settings → Apps → API Token** → `CLICKUP_API_TOKEN`.
@@ -65,8 +66,8 @@ Want the ClickUp side in Slack too? ClickUp's own Slack integration can post tas
 3. Prices are created in Stripe automatically the first time each package is ordered, so there's nothing to set up by hand. To change a package price, edit `src/lib/packages.ts` (and give the package a new name, or archive the old price in Stripe).
 4. Tip: do a full run with test-mode keys (`rk_test_…`, test webhook secret) first, then swap in live keys.
 
-### 5. AI drafts (optional)
-console.anthropic.com → API key → `ANTHROPIC_API_KEY`. Without it, Slack still gets a sensible template draft.
+### 5. AI (drafts and fixed-package emails)
+console.anthropic.com → API key → `ANTHROPIC_API_KEY`, and make sure the account has credit (Plans & Billing). Without it, everything still works with well-written templates instead of AI text. The AI only uses facts from `NEXT_STEPS` in `api/_lib/ai.ts` for "what you'll get", so edit that list if your onboarding changes.
 
 ## Testing it
 1. Submit the contact form on the live site with your own email and a custom message → you get the confirmation; Slack shows the draft; ClickUp has the task.
