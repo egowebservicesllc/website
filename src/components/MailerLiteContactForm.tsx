@@ -11,6 +11,23 @@ const SERVICE_PREFIX = '[Service: ';
 
 export const SELECT_PACKAGE_EVENT = 'ego-select-package';
 
+/** Sends the lead to the automation (/api/lead) once per unique submission. */
+function sendLead(payload: Record<string, unknown>) {
+  const key = `ego_lead_${String(payload.email || '').toLowerCase()}_${String(payload.message || '').length}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch (e) {}
+  try {
+    fetch('/api/lead', {
+      method: 'POST',
+      keepalive: true,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).catch(() => {});
+  } catch (e) {}
+}
+
 export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = ({ defaultService }) => {
   // "What do you need help with?" chips. The choice (and any package picked on
   // the pricing page) is added to the top of the Message field on submit, so it
@@ -65,6 +82,26 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
       message: (last && msg.value.startsWith(last) ? msg.value.slice(last.length) : msg.value).trim(),
       source: source || '',
     };
+    // Hand the lead to the automation right away (not only on MailerLite's success
+    // callback, which doesn't fire reliably), as long as the form looks valid and
+    // the reCAPTCHA box has been ticked.
+    const snap = submittedRef.current;
+    const captchaBox = document.getElementById('contact-recaptcha');
+    let captchaOk = !captchaBox || captchaBox.innerHTML.trim() === '';
+    try {
+      const resp = (form.querySelector('[name="g-recaptcha-response"]') as HTMLTextAreaElement | null)?.value
+        || (window as any).grecaptcha?.getResponse?.() || '';
+      if (resp) captchaOk = true;
+    } catch (err) {}
+    if (snap && /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(snap.email) && snap.name && snap.message && captchaOk) {
+      sendLead({
+        ...snap,
+        services: servicesRef.current,
+        serviceId: SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id,
+        package: pkgRef.current || undefined,
+        page: window.location.pathname,
+      });
+    }
     if (!parts.length || !original.trim()) return;
     const prefix = `${parts.join(' ')}\n\n`;
     appliedPrefixRef.current = prefix;
@@ -95,20 +132,13 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
       const snap = submittedRef.current;
       if (snap?.email) {
         submittedRef.current = null;
-        try {
-          fetch('/api/lead', {
-            method: 'POST',
-            keepalive: true,
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              ...snap,
-              services: servicesRef.current,
-              serviceId: SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id,
-              package: pkgRef.current || undefined,
-              page: window.location.pathname,
-            }),
-          }).catch(() => {});
-        } catch (e) {}
+        sendLead({
+          ...snap,
+          services: servicesRef.current,
+          serviceId: SERVICE_OPTIONS.find((o) => servicesRef.current.includes(o.label))?.id,
+          package: pkgRef.current || undefined,
+          page: window.location.pathname,
+        });
       }
 
       trackLead('contact_form', { services: servicesRef.current.join(', ') || 'unspecified', package: pkgRef.current || undefined });
