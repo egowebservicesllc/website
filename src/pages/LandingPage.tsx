@@ -297,7 +297,7 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
           </p>
           <nav className="flex gap-4" aria-label="Legal">
             <Link href="/privacy" className="hover:text-primary">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-primary">Terms of Use</Link>
+            <Link href="/terms" className="hover:text-primary">Terms of Service</Link>
             <Link href="/" className="hover:text-primary">Main site</Link>
           </nav>
         </div>

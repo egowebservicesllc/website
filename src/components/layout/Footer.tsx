@@ -168,6 +168,8 @@ export function Footer() {
             <span className="mx-2">·</span>
             <Link href="/terms"><span className="hover:text-primary cursor-pointer transition-colors">Terms</span></Link>
             <span className="mx-2">·</span>
+            <a href="/terms#refunds" className="hover:text-primary transition-colors">Refunds</a>
+            <span className="mx-2">·</span>
             <button
               type="button"
               onClick={() => window.dispatchEvent(new Event(OPEN_CONSENT_EVENT))}

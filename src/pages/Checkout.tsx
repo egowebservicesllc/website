@@ -143,7 +143,7 @@ export default function Checkout() {
 
                   <label className="flex items-start gap-3 text-sm text-slate-600">
                     <input type="checkbox" checked={terms} onChange={(e) => setTerms(e.target.checked)} className="mt-1 h-4 w-4 accent-[var(--color-primary,#005fc2)]" required />
-                    <span>I agree to the <Link href="/terms" className="text-primary font-semibold hover:underline">Terms</Link> and <Link href="/privacy" className="text-primary font-semibold hover:underline">Privacy Policy</Link>.</span>
+                    <span>I agree to the <Link href="/terms" className="text-primary font-semibold hover:underline">Terms of Service</Link> (including the <a href="/terms#refunds" className="text-primary font-semibold hover:underline">refund policy</a>) and <Link href="/privacy" className="text-primary font-semibold hover:underline">Privacy Policy</Link>.</span>
                   </label>
 
                   {error && <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-red-800"><AlertCircle className="w-5 h-5 mt-0.5 shrink-0" /><p>{error}</p></div>}

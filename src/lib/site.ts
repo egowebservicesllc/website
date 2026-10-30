@@ -248,9 +248,9 @@ PAGES["/privacy"] = {
 };
 PAGES["/terms"] = {
   path: "/terms",
-  name: "Terms of Use",
-  title: "Terms of Use",
-  description: "Terms governing the use of the EGO Web Services website.",
+  name: "Terms of Service",
+  title: "Terms of Service & Refund Policy",
+  description: "Terms for using the EGO Web Services website and client portal, buying packages, hosting subscriptions, refunds and cancellations.",
 };
 for (const cp of CLOUD_PAGES) {
   PAGES[cp.path] = {
