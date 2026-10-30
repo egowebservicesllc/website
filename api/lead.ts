@@ -16,6 +16,7 @@
 import { waitUntil } from "@vercel/functions";
 import { ENV, has, log } from "./_lib/env.js";
 import { createLeadTask, commentOnTask, taskUrl } from "./_lib/clickup.js";
+import { platformTag } from "./_lib/portal.js";
 import { createPaymentLink, formatMoney } from "./_lib/stripe.js";
 import { sendNotification, sendTeamCopy } from "./_lib/email.js";
 import { confirmationEmail, fixedOrderEmail, teamCopyEmail } from "./_lib/templates.js";
@@ -104,7 +105,11 @@ export async function POST(request: Request) {
   // 1. ClickUp
   let task: { id: string; url: string } | null = null;
   try {
-    task = await createLeadTask(lead, { priceLabel });
+    // Fixed-price packages are orders awaiting payment; hosting becomes a portal "service" once paid.
+    const tags = checkout
+      ? ["website-lead", "order", "awaiting-payment", ...(checkout.mode === "subscription" ? ["service", platformTag(lead.message)] : [])]
+      : undefined;
+    task = await createLeadTask(lead, { priceLabel, ...(tags ? { tags, title: pkg?.name } : {}) });
   } catch (err) {
     log("clickup_failed", { ref: lead.ref, error: String(err) });
   }

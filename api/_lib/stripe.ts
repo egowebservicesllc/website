@@ -144,6 +144,53 @@ export async function billingPortalUrl(customerId: string, returnUrl: string): P
   return s.url as string;
 }
 
+export interface SubscriptionInfo {
+  id: string;
+  status: string; // active, past_due, canceled, trialing, unpaid, incomplete…
+  cancelAtPeriodEnd: boolean;
+  currentPeriodEnd: number | null; // ms
+  amount: string; // "$45/month"
+  product: string;
+  taskId?: string;
+  ref?: string;
+}
+
+/** A customer's subscriptions (all statuses), newest first. Needs Subscriptions + Products read. */
+export async function listSubscriptions(customerId: string): Promise<SubscriptionInfo[]> {
+  const res = await stripe("/subscriptions", { customer: customerId, status: "all", limit: 30, "expand[]": "data.items.data.price.product" }, "GET");
+  return (res.data || []).map((sub: any) => {
+    const item = sub.items?.data?.[0];
+    const price = item?.price || {};
+    const interval = price.recurring?.interval || "month";
+    return {
+      id: sub.id,
+      status: sub.status,
+      cancelAtPeriodEnd: Boolean(sub.cancel_at_period_end),
+      currentPeriodEnd: (sub.current_period_end || item?.current_period_end) ? (sub.current_period_end || item.current_period_end) * 1000 : null,
+      amount: `${formatMoney(price.unit_amount || 0, price.currency || ENV.currency)}/${interval}`,
+      product: (typeof price.product === "object" ? price.product?.name : "") || "Subscription",
+      taskId: sub.metadata?.clickup_task_id,
+      ref: sub.metadata?.ref,
+    } as SubscriptionInfo;
+  });
+}
+
+/** Billing-portal link that opens straight on "cancel this subscription" (falls back to the normal billing page). */
+export async function cancelSubscriptionUrl(customerId: string, subscriptionId: string, returnUrl: string): Promise<string> {
+  try {
+    const s = await stripe("/billing_portal/sessions", {
+      customer: customerId,
+      return_url: returnUrl,
+      "flow_data[type]": "subscription_cancel",
+      "flow_data[subscription_cancel][subscription]": subscriptionId,
+    });
+    return s.url as string;
+  } catch (err) {
+    log("stripe_cancel_flow_failed", { error: String(err) });
+    return billingPortalUrl(customerId, returnUrl);
+  }
+}
+
 export async function getPaymentLinkMetadata(id: string): Promise<Record<string, string>> {
   try {
     const link = await stripe(`/payment_links/${id}`, undefined, "GET");

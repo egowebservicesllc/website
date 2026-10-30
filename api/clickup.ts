@@ -10,8 +10,8 @@ import crypto from "node:crypto";
 import { ENV, has, log } from "./_lib/env.js";
 import { createWebhook, emailFromTask, getComments, getTask, taskTitle } from "./_lib/clickup.js";
 import { sendEmail, sendNotification } from "./_lib/email.js";
-import { statusUpdateEmail, teamMessageEmail } from "./_lib/templates.js";
-import { STAGES, refOf, stageOf } from "./_lib/portal.js";
+import { serviceReadyEmail, statusUpdateEmail, teamMessageEmail } from "./_lib/templates.js";
+import { STAGES, TICKET_STAGES, kindOf, refOf, stageOf } from "./_lib/portal.js";
 
 const done = new Set<string>(); // de-duplicates ClickUp retries on a warm instance
 
@@ -64,6 +64,12 @@ export async function POST(request: Request) {
       const comments = await getComments(taskId);
       const c = comments.find((x) => x.id === String(item.comment?.id || item.id)) || comments[0];
       const text = (c?.comment_text || "").trim();
+      if (/^service details\s*:/i.test(text)) {
+        const mail = serviceReadyEmail(title, ref);
+        await sendNotification(to, mail.subject, mail.html, mail.text);
+        log("client_notified_service_ready", { taskId, ref });
+        return new Response("ok");
+      }
       if (!/^to client:/i.test(text)) return new Response("internal comment");
       const message = text.replace(/^to client:\s*/i, "");
       const mail = teamMessageEmail(title, ref, message);
@@ -75,8 +81,9 @@ export async function POST(request: Request) {
       const prev = item.before?.status ?? item.before;
       const before = stageOf(typeof prev === "string" ? prev : prev?.status);
       const after = stageOf(task.status?.status);
-      if (after > 0 && after !== before) {
-        const mail = statusUpdateEmail(title, ref, STAGES[after]);
+      if (after > 0 && after !== before && kindOf(task) !== "service") {
+        const label = kindOf(task) === "ticket" ? TICKET_STAGES[after] : STAGES[after];
+        const mail = statusUpdateEmail(title.replace(/^Support:\s*/i, "Support request: "), ref, label);
         await sendNotification(to, mail.subject, mail.html, mail.text);
         log("client_notified_status", { taskId, ref, stage: STAGES[after] });
       }

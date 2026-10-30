@@ -209,3 +209,35 @@ export function teamCopyEmail(opts: {
   });
   return { subject, text, html };
 }
+
+/** Support request received (client portal). */
+export function ticketReceivedEmail(ref: string, subject: string, priority: string) {
+  const urgent = priority.startsWith("Urgent");
+  const line = urgent
+    ? "We've received your urgent request and our team has been alerted right away."
+    : `We've received your request and will reply within ${ENV.responseTime}.`;
+  const text = `${line}\n\nSubject: ${subject}\nReference: ${ref}\nPriority: ${priority}\n\nFollow it and reply in your client portal: ${ENV.portalUrl}/portal?tab=support\n\n${ENV.signatureName}`;
+  const html = layout({
+    heading: "We've received your support request",
+    bodyHtml:
+      textToHtml(line) +
+      `<table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;background:#f1f5f9;border-radius:12px;margin:0 0 8px"><tr><td style="padding:14px 20px;font-size:14px;line-height:1.7">Subject: ${esc(subject)}<br>Reference: ${esc(ref)}<br>Priority: ${esc(priority)}</td></tr></table>`,
+    ctaLabel: "Open your request",
+    ctaUrl: `${ENV.portalUrl}/portal?tab=support`,
+    footnote: "You'll get an email when we reply. You can add details or files to the request in the portal.",
+  });
+  return { subject: `Support request received: ${subject} (${ref})`, text, html };
+}
+
+/** Access details were added for a hosting / managed service (details stay in the portal). */
+export function serviceReadyEmail(title: string, ref: string) {
+  const text = `Good news: your ${title} is set up.\n\nYour access details (control panel or server address, username, nameservers) are in your client portal: ${ENV.portalUrl}/portal?tab=services\n\nPasswords are never shown in the portal or sent with this email; we share them separately.\n\n${ENV.signatureName}`;
+  const html = layout({
+    heading: `Your ${title} is ready`,
+    bodyHtml: textToHtml(`Good news: your ${title} is set up and ready to use.\n\nYour access details (control panel or server address, username and nameservers) are waiting in your client portal.\n\nFor your security, passwords are never shown in the portal or included in emails; we share them separately.`),
+    ctaLabel: "View access details",
+    ctaUrl: `${ENV.portalUrl}/portal?tab=services`,
+    footnote: ref ? `Reference ${ref}` : undefined,
+  });
+  return { subject: `Your ${title} is ready${ref ? ` (${ref})` : ""}`, text, html };
+}

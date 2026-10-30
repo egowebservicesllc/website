@@ -120,3 +120,64 @@ ClickUp status → what the client sees: `to do`/`open` → Received · `in prog
 5. Test: open portal.egowebservices.com, sign in with an email that has an order, send a message, upload a file; in ClickUp reply with `To client: Hello!`.
 
 Security: sign-in links expire after 20 minutes; sessions last 30 days in an HttpOnly cookie; clients can only open tasks tagged with their own email; cross-site requests are blocked; uploads are size- and type-limited.
+
+---
+
+# Client portal: Services, Support and Documents
+
+The portal now has four tabs: **Orders · Services · Support · Documents**. Everything is stored in ClickUp (no extra database) and Stripe.
+
+## Services (hosting: cPanel / WHM, Plesk, VMs, managed cloud)
+- A hosting order becomes a **service** automatically once it's paid. At checkout the client picks the control panel (cPanel / WHM, Plesk, or no panel = VM with root/SSH), which sets the tag `svc-cpanel`, `svc-plesk` or `svc-vm`.
+- To add a service by hand (e.g. managed cloud or a VM you sold by quote): on the client's task add the tags `service` and one of `svc-cpanel`, `svc-plesk`, `svc-vm`, `svc-cloud`.
+- The client sees the price, the renewal date and the status live from Stripe (**Active**, **Setting up**, **Payment due**, **Cancels at period end**, **Cancelled**), plus buttons: Open control panel · Get help · Upgrade plan · Messages & files · Cancel.
+
+### Giving the client their access details
+Post a ClickUp **comment** on the service task that starts with `Service details:`. Use one `Label: value` per line. The client gets an email ("Your … is ready") and sees the details in the portal. The newest comment wins, so post a new one to update.
+
+cPanel / WHM:
+```
+Service details:
+Control panel: https://server1.egowebservices.com:2083
+Username: acme
+Server IP: 203.0.113.10
+Nameservers: ns1.egowebservices.com, ns2.egowebservices.com
+Webmail: https://server1.egowebservices.com:2096
+Password: sent separately
+```
+Plesk:
+```
+Service details:
+Control panel: https://server2.egowebservices.com:8443
+Username: acme
+Server IP: 203.0.113.11
+Nameservers: ns1.egowebservices.com, ns2.egowebservices.com
+Password: sent separately
+```
+VM (no panel):
+```
+Service details:
+Server IP: 203.0.113.20
+SSH: ssh acme@203.0.113.20 (port 22)
+Operating system: Ubuntu 24.04 LTS
+Plan: 4 vCPU · 8 GB RAM · 160 GB NVMe
+Region: Frankfurt
+Password: SSH key, sent separately
+```
+- Lines whose label contains *password, secret, token, key* or *PIN* are **always** shown as "Sent to you separately", whatever you write. Still, never put real passwords in ClickUp: send them by a one-time secret link (e.g. onetimesecret.com) or let the client set their own.
+- The first line with a link (e.g. `Control panel: https://…`) becomes the **Open control panel** button.
+- Lines without a `Label:` are shown as notes (e.g. "SSL is active.").
+
+## Support
+- Clients open requests from **Support → New request** (or **Get help** on a service), with a topic, a priority (Normal · High · Urgent) and a description. Each request is a ClickUp task tagged `support` (+ `urgent`), linked to the service, with reference `SUP-…`.
+- You get a Slack alert (🔴 for urgent) and a copy at info@. The client gets a confirmation from notifications@.
+- Reply with a ClickUp comment starting `To client:`; the client gets it by email and in the portal. Ticket stages follow the task status: to do → **Open**, in progress → **In progress**, review → **Waiting on you**, complete → **Resolved** (the client is emailed on each change).
+- **Upgrade plan** opens a request with the topic "Upgrade or change plan". Change the plan in Stripe (Customers → subscription → Update) and reply to the client.
+
+## Documents
+Every file attached to any of the client's tasks (orders, services, tickets) is listed in **Documents**, marked **From EGO** or **Uploaded by you**. To share a report or deliverable, attach it to the client's task in ClickUp.
+
+## Requirements
+- Stripe key permissions: add **Subscriptions: Read** (and Products: Read) so the portal can show plans and renewal dates.
+- Stripe → Settings → Billing → **Customer portal**: cancellations on (the portal's Cancel button opens Stripe's cancel page).
+- The **"service ready"**, **reply** and **status** emails need the ClickUp webhook: open `https://www.egowebservices.com/api/clickup?action=setup&key=YOUR_PORTAL_SECRET` once and save the secret it shows as `CLICKUP_WEBHOOK_SECRET` in Vercel, then redeploy.

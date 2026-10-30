@@ -96,6 +96,7 @@ export interface CuTask {
   tags?: { name: string }[];
   date_created?: string;
   date_updated?: string;
+  priority?: { priority?: string } | null;
   text_content?: string;
   markdown_description?: string;
   attachments?: { id: string; title?: string; url?: string; date?: string; size?: number; extension?: string }[];
@@ -173,4 +174,14 @@ export async function createWebhook(endpoint: string) {
 export function emailFromTask(t: CuTask): string | null {
   const m = `${t.markdown_description || ""}\n${t.text_content || ""}`.match(/Email:\**\s*([^\s*<>]+@[^\s*<>]+\.[a-z]{2,})/i);
   return m ? m[1].toLowerCase() : null;
+}
+
+/** Generic task in the leads list (support tickets etc.). Returns the new task id. */
+export async function createTask(opts: { name: string; markdown: string; tags: string[]; priority?: number }) {
+  if (!has.clickup()) return null;
+  const task = await cu(`/list/${ENV.clickupListId}/task`, {
+    method: "POST",
+    body: JSON.stringify({ name: opts.name, markdown_description: opts.markdown, tags: opts.tags, priority: opts.priority ?? 3 }),
+  });
+  return { id: task.id as string, url: (task.url as string) || `${ENV.clickupWorkspaceUrl}${task.id}` };
 }

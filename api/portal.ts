@@ -9,17 +9,43 @@
  *   POST message  {id, text}     → client message → ClickUp comment + Slack
  *   POST upload   ?id= (multipart "file") → attaches the file to the ClickUp task + Slack
  *   POST billing                 → Stripe billing portal link (invoices, cards, subscriptions)
+ *   GET  services                → hosting / managed services: Stripe subscription + access details
+ *   POST cancel   {subscription} → Stripe page to cancel that subscription
+ *   POST ticket   {serviceId?, category, priority, subject, text} → support ticket (ClickUp + Slack + emails)
+ *   GET  documents               → every file shared on the client's orders, services and tickets
  * Orders are read live from ClickUp; nothing else is stored.
  */
 import { ENV, has, log } from "./_lib/env.js";
-import { addTag, commentOnTask, getClientTask, getComments, listClientTasks, taskUrl, uploadAttachment } from "./_lib/clickup.js";
-import { billingPortalUrl, findCustomerId } from "./_lib/stripe.js";
+import { addTag, clientTag, commentOnTask, createTask, getClientTask, getComments, listClientTasks, taskTitle, taskUrl, uploadAttachment, type CuTask } from "./_lib/clickup.js";
+import { billingPortalUrl, cancelSubscriptionUrl, findCustomerId, listSubscriptions, type SubscriptionInfo } from "./_lib/stripe.js";
 import { postMessage } from "./_lib/slack.js";
-import { sendNotification } from "./_lib/email.js";
-import { magicLinkEmail } from "./_lib/templates.js";
+import { sendNotification, sendTeamCopy } from "./_lib/email.js";
+import { magicLinkEmail, teamCopyEmail, ticketReceivedEmail } from "./_lib/templates.js";
 import {
-  clearCookie, clientIp, clientMessages, json, orderSummary, rateLimited, sameOrigin, sessionCookie, sessionEmail, signToken, verifyToken,
+  clearCookie, clientIp, clientMessages, json, kindOf, orderSummary, platformOf, rateLimited, refOf, sameOrigin, serviceDetails,
+  sessionCookie, sessionEmail, signToken, verifyToken,
 } from "./_lib/portal.js";
+
+const TICKET_CATEGORIES = ["Technical problem", "Website or server down", "Email", "Domain or DNS", "Billing", "Upgrade or change plan", "New request", "Other"];
+const PRIORITIES = ["Normal", "High", "Urgent (site down)"];
+
+function supRef() {
+  const d = new Date();
+  const ymd = `${String(d.getUTCFullYear()).slice(2)}${String(d.getUTCMonth() + 1).padStart(2, "0")}${String(d.getUTCDate()).padStart(2, "0")}`;
+  return `SUP-${ymd}-${Math.random().toString(36).slice(2, 6).toUpperCase().padEnd(4, "X")}`;
+}
+
+/** Service status shown to the client, from Stripe when linked, otherwise from ClickUp. */
+function serviceStatus(t: CuTask, sub: SubscriptionInfo | undefined, hasDetails: boolean) {
+  if (sub) {
+    if (sub.status === "canceled") return "Cancelled";
+    if (sub.status === "past_due" || sub.status === "unpaid") return "Payment due";
+    if (sub.cancelAtPeriodEnd) return "Cancels at period end";
+    if (sub.status === "incomplete") return "Awaiting payment";
+  }
+  if (/cancel/i.test(t.status?.status || "")) return "Cancelled";
+  return hasDetails ? "Active" : "Setting up";
+}
 
 const MAX_FILE = 4 * 1024 * 1024; // Vercel functions accept ~4.5 MB request bodies
 const ALLOWED = /\.(pdf|png|jpe?g|gif|webp|svg|ai|eps|psd|zip|docx?|xlsx?|pptx?|txt|csv|md)$/i;
@@ -90,7 +116,149 @@ async function handle(request: Request, method: "GET" | "POST") {
     if (!task) return json(404, { ok: false, error: "Order not found." });
     const comments = await getComments(task.id).catch(() => []);
     const files = (task.attachments || []).map((a) => ({ id: a.id, name: a.title || "File", url: a.url, size: a.size, date: Number(a.date) || null }));
-    return json(200, { ok: true, order: { ...orderSummary(task), messages: clientMessages(comments), files } });
+    const kind = kindOf(task);
+    return json(200, {
+      ok: true,
+      order: { ...orderSummary(task), messages: clientMessages(comments), files, ...(kind === "service" ? { details: serviceDetails(comments) } : {}) },
+    });
+  }
+
+  if (method === "GET" && action === "services") {
+    try {
+      const tasks = (await listClientTasks(email)).filter((t) => kindOf(t) === "service");
+      let subs: SubscriptionInfo[] = [];
+      try {
+        const customer = await findCustomerId(email);
+        if (customer) subs = await listSubscriptions(customer);
+      } catch (err) {
+        log("portal_subscriptions_failed", { error: String(err) });
+      }
+      const services = await Promise.all(
+        tasks.map(async (t) => {
+          const comments = await getComments(t.id).catch(() => []);
+          const details = serviceDetails(comments);
+          const sub = subs.find((x) => x.taskId === t.id) || subs.find((x) => x.ref && x.ref === refOf(t.name));
+          return {
+            id: t.id,
+            title: taskTitle(t.name),
+            ref: refOf(t.name),
+            platform: platformOf(t),
+            status: serviceStatus(t, sub, Boolean(details)),
+            billing: sub ? { subscription: sub.id, amount: sub.amount, renews: sub.cancelAtPeriodEnd || sub.status === "canceled" ? null : sub.currentPeriodEnd, endsAt: sub.cancelAtPeriodEnd ? sub.currentPeriodEnd : null, status: sub.status } : null,
+            details,
+            created: Number(t.date_created) || null,
+          };
+        }),
+      );
+      return json(200, { ok: true, services });
+    } catch (err) {
+      log("portal_services_failed", { error: String(err) });
+      return json(502, { ok: false, error: "We couldn't load your services right now. Please try again shortly." });
+    }
+  }
+
+  if (method === "POST" && action === "cancel") {
+    const body = await request.json().catch(() => ({}));
+    const subId = String(body.subscription || "");
+    if (!/^sub_[A-Za-z0-9]+$/.test(subId)) return json(400, { ok: false, error: "Unknown subscription." });
+    try {
+      const customer = await findCustomerId(email);
+      if (!customer) return json(404, { ok: false, error: "No billing account found for this email." });
+      const subs = await listSubscriptions(customer);
+      if (!subs.some((x) => x.id === subId)) return json(404, { ok: false, error: "Subscription not found." });
+      return json(200, { ok: true, url: await cancelSubscriptionUrl(customer, subId, `${ENV.portalUrl}/portal?tab=services`) });
+    } catch (err) {
+      log("portal_cancel_failed", { error: String(err) });
+      return json(502, { ok: false, error: "Billing is temporarily unavailable. Please contact us." });
+    }
+  }
+
+  if (method === "POST" && action === "ticket") {
+    if (rateLimited(`pt:${email}`, 10, 3600_000)) return json(429, { ok: false, error: "Too many requests. Please wait a little or email us." });
+    const body = await request.json().catch(() => ({}));
+    const subject = String(body.subject || "").trim().slice(0, 120);
+    const text = String(body.text || "").trim().slice(0, 4000);
+    const category = TICKET_CATEGORIES.includes(body.category) ? String(body.category) : "Other";
+    const priority = PRIORITIES.includes(body.priority) ? String(body.priority) : "Normal";
+    if (!subject || !text) return json(400, { ok: false, error: "Please add a subject and describe the issue." });
+    let service: CuTask | null = null;
+    if (body.serviceId) {
+      service = await getClientTask(String(body.serviceId), email);
+      if (!service) return json(404, { ok: false, error: "Service not found." });
+    }
+    const ref = supRef();
+    const serviceTitle = service ? taskTitle(service.name) : undefined;
+    const urgent = priority.startsWith("Urgent");
+    const task = await createTask({
+      name: `Support: ${subject} — ${email} (${ref})`,
+      markdown: [
+        `**Ref:** ${ref}`,
+        `**Email:** ${email}`,
+        `**Category:** ${category}`,
+        `**Priority:** ${priority}`,
+        service ? `**Service:** ${serviceTitle} (${refOf(service.name)})` : "",
+        service ? `**Service ID:** ${service.id}` : "",
+        "",
+        "### Request",
+        text,
+      ].filter((l) => l !== "").join("\n"),
+      tags: ["support", clientTag(email), ...(urgent ? ["urgent"] : [])],
+      priority: urgent ? 1 : priority === "High" ? 2 : 3,
+    }).catch((err) => {
+      log("portal_ticket_failed", { error: String(err) });
+      return null;
+    });
+    if (!task) return json(502, { ok: false, error: "We couldn't create your request. Please email us instead." });
+    if (service) await commentOnTask(service.id, `🎫 Support request ${ref} opened: ${subject} (${taskUrl(task.id)})`);
+
+    await slackNote(
+      `${urgent ? "🔴 *URGENT support request*" : priority === "High" ? "🟠 *Support request (high)*" : "🎫 *Support request*"} ${ref}\n*${subject}*\n${email}${serviceTitle ? ` · ${serviceTitle}` : ""} · ${category}\n>${text.slice(0, 1200).replace(/\n/g, "\n>")}`,
+      task.id,
+    );
+    const mail = ticketReceivedEmail(ref, subject, priority);
+    await sendNotification(email, mail.subject, mail.html, mail.text).catch(() => {});
+    const copy = teamCopyEmail({
+      kind: "lead",
+      ref,
+      title: `${urgent ? "🔴 URGENT " : ""}Support: ${subject}`,
+      clientName: email,
+      clientEmail: email,
+      rows: [["Email", email], ["Category", category], ["Priority", priority], ["Service", serviceTitle]],
+      message: text,
+      taskId: task.id,
+      status: "New support request from the client portal. Reply in ClickUp with a comment starting \"To client:\" (they get it by email and in the portal), or reply to this email.",
+    });
+    await sendTeamCopy(copy.subject.replace("New request", "Support request"), copy.html, copy.text, email).catch(() => {});
+    log("portal_ticket_created", { ref, email, priority });
+    return json(200, { ok: true, id: task.id, ref });
+  }
+
+  if (method === "GET" && action === "documents") {
+    try {
+      const tasks = (await listClientTasks(email)).filter((t) => (t.attachments || []).length);
+      const groups = await Promise.all(
+        tasks.map(async (t) => {
+          const comments = await getComments(t.id).catch(() => []);
+          const mine = new Set(comments.map((c) => (c.comment_text || "").match(/^📎 Client uploaded:\s*(.+)$/)?.[1]?.trim()).filter(Boolean) as string[]);
+          return (t.attachments || []).map((a) => ({
+            id: a.id,
+            name: a.title || "File",
+            url: a.url,
+            size: a.size,
+            date: Number(a.date) || null,
+            from: mine.has((a.title || "").trim()) ? "you" : "team",
+            taskId: t.id,
+            taskTitle: taskTitle(t.name).replace(/^Support:\s*/i, ""),
+            kind: kindOf(t),
+          }));
+        }),
+      );
+      const documents = groups.flat().sort((a, b) => (b.date || 0) - (a.date || 0));
+      return json(200, { ok: true, documents });
+    } catch (err) {
+      log("portal_documents_failed", { error: String(err) });
+      return json(502, { ok: false, error: "We couldn't load your documents right now." });
+    }
   }
 
   if (method === "POST" && action === "message") {

@@ -10,7 +10,7 @@ import { createCheckoutSession, formatMoney } from "./_lib/stripe.js";
 import { postMessage } from "./_lib/slack.js";
 import { sendTeamCopy } from "./_lib/email.js";
 import { teamCopyEmail } from "./_lib/templates.js";
-import { clientIp, json, rateLimited, sameOrigin } from "./_lib/portal.js";
+import { clientIp, json, platformTag, rateLimited, sameOrigin } from "./_lib/portal.js";
 import { ORDER_FIELDS, findCheckoutPackage } from "../src/lib/checkout.js";
 import type { Lead } from "./_lib/types.js";
 
@@ -78,7 +78,9 @@ export async function POST(request: Request) {
 
   let task: { id: string; url: string } | null = null;
   try {
-    task = await createLeadTask(lead, { priceLabel: price, title: pkg.name, tags: ["website-order", "order", "awaiting-payment"], details: [["Order", `${pkg.name} (${price})`], ...details] });
+    // Hosting becomes an ongoing "service" in the client portal once it's paid.
+    const serviceTags = checkout.mode === "subscription" ? ["service", platformTag(str(raw.panel, 80))] : [];
+    task = await createLeadTask(lead, { priceLabel: price, title: pkg.name, tags: ["website-order", "order", "awaiting-payment", ...serviceTags], details: [["Order", `${pkg.name} (${price})`], ...details] });
   } catch (err) {
     log("clickup_failed", { ref, error: String(err) });
   }

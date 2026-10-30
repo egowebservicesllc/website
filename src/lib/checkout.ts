@@ -17,6 +17,7 @@ export interface OrderField {
 export const ORDER_FIELDS: Record<string, OrderField[]> = {
   hosting: [
     { id: "domain", label: "Domain name for this hosting", placeholder: "yourbusiness.com", required: true },
+    { id: "panel", label: "Control panel", type: "select", required: true, options: ["cPanel / WHM", "Plesk", "No control panel (VM with root / SSH access)", "Not sure, recommend one"] },
     { id: "currentHost", label: "Current hosting provider (if moving)", placeholder: "e.g. GoDaddy, Bluehost, none" },
     { id: "siteType", label: "What will you host?", type: "select", options: ["WordPress site", "Online store", "Custom web app", "Static website", "Email / other", "Not sure"] },
   ],
