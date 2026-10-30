@@ -19,7 +19,7 @@ export function layout(opts: { heading: string; bodyHtml: string; ctaLabel?: str
   return `<!doctype html><html><body style="margin:0;background:#f8fafc;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;color:#0f172a">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 12px"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;overflow:hidden">
-<tr><td style="background:#005fc2;padding:22px 32px;color:#fff;font-size:20px;font-weight:800">EGO Web Services</td></tr>
+<tr><td style="background:#ffffff;padding:22px 32px;border-bottom:4px solid #005fc2"><a href="${ENV.siteUrl}" style="text-decoration:none"><img src="${ENV.siteUrl}/email/ego-logo.png" width="200" height="59" alt="EGO Web Services" style="display:block;border:0;width:200px;height:auto;color:#0f172a;font-size:20px;font-weight:800"></a></td></tr>
 <tr><td style="padding:32px;font-size:16px;line-height:1.6">
 <h1 style="font-size:22px;margin:0 0 16px">${esc(opts.heading)}</h1>
 ${opts.bodyHtml}
