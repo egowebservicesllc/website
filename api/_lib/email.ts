@@ -67,6 +67,10 @@ export async function sendEmail(to: string, subject: string, html: string, text:
 export const sendNotification = (to: string, subject: string, html: string, text: string) =>
   sendEmail(to, subject, html, text, { from: ENV.emailFromNotifications });
 
+/** Service "next steps" auto-reply, sent from info@ (replies come back to info@). */
+export const sendFromInfo = (to: string, subject: string, html: string, text: string) =>
+  sendEmail(to, subject, html, text, { from: ENV.emailFromInfo, replyTo: "info@egowebservices.com" });
+
 /** Copy for the team inbox (info@). Reply-To is the client, so "Reply" in your mail app answers them. */
 export async function sendTeamCopy(subject: string, html: string, text: string, clientEmail?: string) {
   if (!ENV.teamNotifyEmail) return false;

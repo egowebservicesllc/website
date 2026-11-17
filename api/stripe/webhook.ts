@@ -10,7 +10,8 @@ import { ENV, has, log } from "../_lib/env.js";
 import { formatMoney, getPaymentLinkMetadata, verifyStripeSignature } from "../_lib/stripe.js";
 import { addTag, commentOnTask, getTask, removeTag, setTaskStatus, taskTitle, taskUrl } from "../_lib/clickup.js";
 import { postMessage } from "../_lib/slack.js";
-import { sendNotification, sendTeamCopy } from "../_lib/email.js";
+import { sendFromInfo, sendNotification, sendTeamCopy } from "../_lib/email.js";
+import { serviceReplyEmail } from "../_lib/serviceReplies.js";
 import { paymentReceivedEmail, teamCopyEmail } from "../_lib/templates.js";
 import { writeFixedEmail } from "../_lib/ai.js";
 import { PACKAGE_SERVICES } from "../../src/lib/packages.js";
@@ -81,6 +82,13 @@ export async function POST(request: Request) {
     }
     const mail = paymentReceivedEmail(name, ref, amount, orderTitle, aiBody);
     await sendNotification(email, mail.subject, mail.html, mail.text);
+
+    // Buy-now orders: service-specific "getting started" email from info@.
+    // (Contact-form leads already received theirs when they first wrote to us.)
+    if (meta.source === "buy_now") {
+      const svc = serviceReplyEmail({ name, ref, serviceId: found?.sv.id, packageName: found?.p.name || orderTitle, paid: true });
+      await sendFromInfo(email, svc.subject, svc.html, svc.text).catch(() => false);
+    }
   }
 
   const copy = teamCopyEmail({

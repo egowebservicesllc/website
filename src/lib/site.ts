@@ -6,6 +6,7 @@
 
 import { LANDING_PAGES } from "./landing";
 import { CLOUD_PAGES } from "./cloud";
+import { BLOG_POSTS } from "./blog";
 
 export const SITE_URL = "https://www.egowebservices.com";
 export const BRAND = "EGO Web Services";
@@ -102,6 +103,8 @@ export interface PageSeo {
   name: string;
   noindex?: boolean;
   faq?: FaqItem[];
+  /** Blog article: adds BlogPosting structured data and a Home > Blog > article breadcrumb. */
+  article?: { headline: string; datePublished: string; dateModified?: string };
 }
 
 export const HOME_FAQ: FaqItem[] = [
@@ -162,24 +165,24 @@ export const PAGES: Record<string, PageSeo> = {
   "/": {
     path: "/",
     name: "Home",
-    title: "Google Cloud Partner: Cloud Consulting, Migration & Web Development",
+    title: "Google Cloud Partner, Hosting & Web Dev",
     description:
-      "Google Cloud Partner serving businesses worldwide since 2016: cloud consulting & migration on Google Cloud, AWS and Azure, managed cloud, hosting and web development by senior engineers.",
+      "Google Cloud Partner since 2016: cloud migration on Google Cloud, AWS and Azure, managed cloud, hosting from $9/mo and web development by senior engineers.",
     faq: HOME_FAQ,
   },
   "/services": {
     path: "/services",
     name: "Services",
-    title: "Cloud Consulting, Hosting & Web Development Services",
+    title: "Cloud, Hosting & Web Development Services",
     description:
-      "Cloud consulting and migration on Google Cloud, AWS and Azure, enterprise hosting, web and mobile development, branding and digital marketing for businesses worldwide.",
+      "Cloud consulting and migration, managed hosting, web and app development, branding and digital marketing for growing businesses. Get a free quote.",
   },
   "/pricing": {
     path: "/pricing",
     name: "Pricing",
-    title: "Pricing: Cloud Migration, Hosting & Web Development",
+    title: "Pricing: Cloud, Hosting & Websites",
     description:
-      "Transparent pricing: cloud assessments from $2,000, cloud migrations from $5,500, hosting from $9/mo, websites from $1,500. See every package and get a free fixed quote.",
+      "Clear prices: cloud assessment $2,000, migrations from $5,500, hosting from $9/mo, websites from $1,500. Buy packages online or get a free quote.",
     faq: PRICING_FAQ,
   },
   "/portfolio": {
@@ -192,23 +195,23 @@ export const PAGES: Record<string, PageSeo> = {
   "/about": {
     path: "/about",
     name: "About",
-    title: "About Us: Cloud & Digital Agency Since 2016",
+    title: "About Us: Cloud & Web Agency Since 2016",
     description:
-      "Founded in 2016, EGO Web Services is a Google Cloud Partner that builds, hosts and runs dependable technology for businesses worldwide, with senior engineers and plain-English communication.",
+      "EGO Web Services is a Google Cloud Partner founded in 2016. Senior engineers build, host and run dependable technology for businesses worldwide.",
   },
   "/support": {
     path: "/support",
     name: "Support",
     title: "Technical Support",
     description:
-      "Get help from the EGO Web Services engineering team. Open a support ticket, email support or chat with us. 24/7 support for managed hosting clients.",
+      "Get help from the EGO Web Services engineers: open a support request in the client portal, email or chat. 24/7 monitoring for managed hosting clients.",
   },
   "/contact": {
     path: "/contact",
     name: "Contact",
     title: "Contact Us: Get a Free Quote",
     description:
-      "Tell us about your project and get a free, no-obligation quote. Or book a 30-minute call. We work with businesses worldwide.",
+      "Tell us about your project and get a free, no-obligation quote within 1 business day, or book a 30-minute call with a senior engineer.",
   },
   "/404": {
     path: "/404",
@@ -273,6 +276,23 @@ for (const lp of LANDING_PAGES) {
 }
 
 /** Every route that gets a static HTML file at build time. */
+PAGES["/blog"] = {
+  path: "/blog",
+  name: "Blog",
+  title: "Blog: Cloud, Hosting & Web Guides",
+  description: "Plain-English guides from EGO Web Services engineers on cloud migration costs, choosing AWS, Google Cloud or Azure, web hosting and more.",
+};
+for (const post of BLOG_POSTS) {
+  PAGES[`/blog/${post.slug}`] = {
+    path: `/blog/${post.slug}`,
+    name: post.title,
+    title: post.metaTitle,
+    description: post.description,
+    faq: post.faq,
+    article: { headline: post.title, datePublished: post.date },
+  };
+}
+
 export const PRERENDER_ROUTES = Object.keys(PAGES);
 
 export const INDEXABLE_ROUTES = Object.values(PAGES)
@@ -294,13 +314,27 @@ export function pageJsonLd(page: PageSeo): object[] {
   const out: object[] = [];
   if (page.noindex) return out;
   if (page.path !== "/") {
+    const crumbs = [{ name: "Home", item: `${SITE_URL}/` }];
+    if (page.article) crumbs.push({ name: "Blog", item: canonicalUrl("/blog") });
+    crumbs.push({ name: page.name, item: canonicalUrl(page.path) });
     out.push({
       "@context": "https://schema.org",
       "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Home", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: page.name, item: canonicalUrl(page.path) },
-      ],
+      itemListElement: crumbs.map((c, i) => ({ "@type": "ListItem", position: i + 1, ...c })),
+    });
+  }
+  if (page.article) {
+    out.push({
+      "@context": "https://schema.org",
+      "@type": "BlogPosting",
+      headline: page.article.headline,
+      description: page.description,
+      datePublished: page.article.datePublished,
+      dateModified: page.article.dateModified || page.article.datePublished,
+      mainEntityOfPage: canonicalUrl(page.path),
+      image: OG_IMAGE,
+      author: { "@type": "Organization", name: BRAND, url: `${SITE_URL}/about` },
+      publisher: { "@id": `${SITE_URL}/#business` },
     });
   }
   if (page.faq?.length) {

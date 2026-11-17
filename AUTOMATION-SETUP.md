@@ -181,3 +181,20 @@ Every file attached to any of the client's tasks (orders, services, tickets) is 
 - Stripe key permissions: add **Subscriptions: Read** (and Products: Read) so the portal can show plans and renewal dates.
 - Stripe → Settings → Billing → **Customer portal**: cancellations on (the portal's Cancel button opens Stripe's cancel page).
 - The **"service ready"**, **reply** and **status** emails need the ClickUp webhook: open `https://www.egowebservices.com/api/clickup?action=setup&key=YOUR_PORTAL_SECRET` once and save the secret it shows as `CLICKUP_WEBHOOK_SECRET` in Vercel, then redeploy.
+
+
+---
+
+# Service "next steps" email (from info@)
+
+Everyone who contacts you or buys gets two emails:
+1. **Confirmation** from notifications@ (unchanged): "we've received your request" / "payment received".
+2. **Next steps** from **info@egowebservices.com**, tailored to the service they asked about: what happens next, what to send you to start faster, useful links (guides, pricing) and a "Book a 30-minute call" button. Replies go to info@.
+
+When it's sent:
+- **Contact form:** straight after the confirmation.
+- **Buy now:** after the payment succeeds, focused on what you need from them to start (portal link included). Payments through a contact-form payment link don't get a second copy.
+
+It recognises 21 topics from the package, the page the form was sent from and the message: Cloud Readiness Assessment, Google Cloud, AWS, Azure, managed cloud, cloud migration, shared / VPS / dedicated / cloud hosting, website, web app, online shop, mobile app, logo, brand identity, video & animation, SEO, paid ads, social media, plus general fallbacks per service. Edit the wording in `api/_lib/serviceReplies.ts`.
+
+Requirement: egowebservices.com must stay verified in Resend (any address on the domain can send). Override the sender with `EMAIL_FROM_INFO` if needed.
