@@ -191,6 +191,25 @@ const TOPICS: Record<string, Topic> = {
     need: ["Your website and social profiles", "What you want more of: leads, sales or bookings", "Your monthly budget range"],
     links: [["Digital marketing", "/services#digital-marketing"], ["Marketing pricing", "/pricing"]],
   },
+  // ---------- Free offers (lead magnets) ----------
+  costreview: {
+    id: "costreview", label: "Free cloud cost review",
+    next: ["A senior cloud engineer reads your request and replies with the safest way to share your bill (a PDF invoice or a read-only billing export).", "We review where the money goes: oversized machines, idle resources, storage, network traffic and unused discounts.", "You receive a short written summary of the biggest savings and what each change involves. It's free and there's no obligation."],
+    need: ["Your last 1–3 monthly cloud invoices, or a billing export (CSV)", "A rough list of what runs there (servers, databases, Kubernetes…)", "Any existing commitments, such as reserved instances, savings plans or committed-use discounts", "Anything that must not change (for example a compliance requirement)"],
+    links: [["Managed cloud & cost optimisation", "/managed-cloud"], ["Cloud solution blueprints", "/solutions"]],
+  },
+  sitecheck: {
+    id: "sitecheck", label: "Free website check",
+    next: ["We run speed, SEO and mobile checks on the website you sent.", "A specialist reviews the results and picks the fixes that matter most for your goal.", "You receive a short report with the top fixes in priority order. It's free and there's no obligation."],
+    need: ["Any pages that matter most (for example your main service or product page)", "Access to Google Search Console or Analytics, if you have them (read-only is fine)", "Your main competitors, if you'd like a comparison"],
+    links: [["Digital marketing", "/services#digital-marketing"], ["Web development", "/services#web-development"]],
+  },
+  checklist: {
+    id: "checklist", label: "Cloud migration checklist",
+    next: ["Your checklist is linked below, so you can download it again any time.", "Work through it with your team; each section flags the questions that change cost and risk most.", "Stuck on a step? Reply to this email and a senior cloud engineer will answer, free."],
+    need: ["Nothing yet. If you'd like a second opinion, reply with what you're planning to move and which cloud you're considering"],
+    links: [["Cloud migration checklist (print or save as PDF)", "/downloads/cloud-migration-checklist.html"], ["Cloud solution blueprints", "/solutions"], ["Google Cloud migration cost guide", "/blog/google-cloud-migration-cost"]],
+  },
   // ---------- Fallback ----------
   general: {
     id: "general", label: "your project",
@@ -206,6 +225,9 @@ export function topicFor(i: Pick<ServiceReplyInput, "serviceId" | "packageName" 
   const page = (i.page || "").toLowerCase();
   const msg = (i.message || "").toLowerCase();
   const has = (re: RegExp) => re.test(pkg) || re.test(msg);
+  if (/free cloud cost review/.test(pkg)) return TOPICS.costreview;
+  if (/free website check/.test(pkg)) return TOPICS.sitecheck;
+  if (/migration checklist/.test(pkg)) return TOPICS.checklist;
   switch (i.serviceId) {
     case "consulting":
       if (/readiness|assessment/.test(pkg)) return TOPICS.assessment;
@@ -332,6 +354,9 @@ const PHRASE: Record<string, [string, string]> = {
   ppc: ["paid advertising", "ads campaign"],
   social: ["social media marketing", "social media"],
   marketing: ["digital marketing", "digital marketing"],
+  costreview: ["a free cloud cost review", "free cloud cost review"],
+  sitecheck: ["a free website check", "free website check"],
+  checklist: ["our cloud migration checklist", "cloud migration checklist"],
   general: ["your project", "project"],
 };
 const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");

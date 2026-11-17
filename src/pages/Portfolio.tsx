@@ -3,32 +3,14 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
-import { ArrowRight, Star, Quote } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { SOLUTIONS } from "@/lib/solutions";
+import { SolutionCard } from "@/pages/Solutions";
+import { FreeOffersStrip } from "@/pages/FreeOffers";
 import { PROJECTS } from "@/lib/portfolio";
 import { ProjectCard } from "@/components/ProjectCard";
 
 
-
-const TESTIMONIALS = [
-  {
-    name: "Sarah Jenkins",
-    role: "CTO, DataNexus",
-    content: "EGO Web Services didn't just host our app; they completely rebuilt our infrastructure for the future. Their focus on reliability and speed is exactly what we needed.",
-    rating: 5
-  },
-  {
-    name: "Marcus Thorne",
-    role: "Founder, Zenith Media",
-    content: "The branding and design process was transformative. Our company's identity now truly reflects the high-tier organization we have grown to become.",
-    rating: 5
-  },
-  {
-    name: "Elena Rodriguez",
-    role: "Head of Marketing, Solas",
-    content: "Their technical approach to digital marketing and automation is incredibly effective. We went from struggling to find leads to having a calendar full of highly qualified meetings.",
-    rating: 5
-  }
-];
 
 const fadeInUp = {
   hidden: { opacity: 0, y: 40 },
@@ -53,7 +35,7 @@ export default function Portfolio() {
               Work we're proud of.
             </motion.h1>
             <motion.p variants={fadeInUp} className="text-xl text-slate-600 leading-relaxed">
-              Websites, platforms and digital brands we've designed, built and run for clients around the world.
+              Websites, brands and cloud platforms we've designed, built and run for clients around the world.
             </motion.p>
           </motion.div>
         </div>
@@ -92,44 +74,26 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {/* Testimonials */}
+      {/* Cloud & infrastructure: solution blueprints */}
       <section className="py-24 bg-slate-50 border-t border-slate-200">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">What our clients say.</h2>
-            <p className="text-lg text-slate-600">
-              Direct feedback from the businesses that rely on our infrastructure and expertise.
-            </p>
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3">Cloud & infrastructure</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Cloud platforms we design and build</h2>
+              <p className="text-lg text-slate-600 max-w-2xl">
+                Solution blueprints showing exactly how we build each type of platform: the architecture, services, security and rollout plan, on Google Cloud, AWS and Azure.
+              </p>
+            </div>
+            <Link href="/solutions" className="text-primary font-semibold inline-flex items-center gap-1.5 shrink-0">All blueprints <ArrowRight className="w-4 h-4" /></Link>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {TESTIMONIALS.map((t, i) => (
-              <motion.div 
-                key={i}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
-                className="bg-white p-8 rounded-3xl border border-slate-200 shadow-sm relative group"
-              >
-                <Quote className="absolute top-8 right-8 w-8 h-8 text-slate-100 group-hover:text-blue-50 transition-colors" />
-                <div className="flex mb-6">
-                  {[...Array(t.rating)].map((_, idx) => (
-                    <Star key={idx} className="w-5 h-5 text-amber-400 fill-amber-400" />
-                  ))}
-                </div>
-                <p className="text-slate-700 text-base leading-relaxed font-medium mb-8 relative z-10">
-                  "{t.content}"
-                </p>
-                <div className="mt-auto">
-                  <div className="font-bold text-slate-900">{t.name}</div>
-                  <div className="text-sm text-slate-500 font-medium">{t.role}</div>
-                </div>
-              </motion.div>
-            ))}
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {SOLUTIONS.map((s) => <SolutionCard key={s.slug} s={s} />)}
           </div>
         </div>
       </section>
+
+      <FreeOffersStrip className="bg-white" />
 
       {/* CTA Section */}
       <section className="py-24 bg-primary text-white text-center relative overflow-hidden">

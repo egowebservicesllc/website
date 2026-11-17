@@ -17,6 +17,9 @@ import Checkout from '@/pages/Checkout';
 import Portal from '@/pages/Portal';
 import { Privacy, Terms } from '@/pages/Legal';
 import { BlogIndex, BlogPostPage } from '@/pages/Blog';
+import { SolutionsIndex, SolutionPage } from '@/pages/Solutions';
+import { FreeCostReview, FreeWebsiteCheck, MigrationChecklist } from '@/pages/FreeOffers';
+import { WhatsAppButton } from '@/components/WhatsAppButton';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { EngagePrompt } from '@/components/EngagePrompt';
 import CloudPage from '@/pages/CloudPage';
@@ -45,6 +48,11 @@ function Router() {
       <Route path="/terms" component={Terms} />
       <Route path="/blog" component={BlogIndex} />
       <Route path="/blog/:slug" component={BlogPostPage} />
+      <Route path="/solutions" component={SolutionsIndex} />
+      <Route path="/solutions/:slug" component={SolutionPage} />
+      <Route path="/free-cloud-cost-review" component={FreeCostReview} />
+      <Route path="/free-website-check" component={FreeWebsiteCheck} />
+      <Route path="/cloud-migration-checklist" component={MigrationChecklist} />
       <Route path="/lp/:slug" component={LandingPage} />
       {CLOUD_PAGES.map((p) => (
         <Route key={p.path} path={p.path}>
@@ -66,6 +74,7 @@ function App({ ssrPath }: { ssrPath?: string }) {
           <ScrollManager />
           <Router />
           <EngagePrompt />
+          <WhatsAppButton />
         </WouterRouter>
         <Toaster />
         <TawkToWidget />

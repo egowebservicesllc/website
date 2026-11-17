@@ -116,6 +116,19 @@ function Article({ post }: { post: BlogPost }) {
             ))}
           </div>
 
+          <Link
+            href={post.topic === "Cloud" ? "/cloud-migration-checklist" : "/free-website-check"}
+            className="mt-12 flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-blue-100 bg-blue-50 p-6 md:p-8 hover:border-primary/40 transition-colors"
+          >
+            <span>
+              <span className="block text-sm font-semibold uppercase tracking-widest text-primary mb-1">Free</span>
+              <span className="block text-lg md:text-xl font-bold text-slate-900">
+                {post.topic === "Cloud" ? "Get our free 40-point cloud migration checklist" : "Get a free speed, SEO and mobile check of your website"}
+              </span>
+            </span>
+            <span className="inline-flex items-center gap-2 font-semibold text-primary shrink-0">{post.topic === "Cloud" ? "Get the checklist" : "Check my site"} <ArrowRight className="w-4 h-4" /></span>
+          </Link>
+
           <aside className="mt-12 rounded-3xl bg-primary text-white p-8 md:p-10">
             <p className="text-xl md:text-2xl font-bold text-balance">{post.cta.text}</p>
             <div className="mt-6 flex flex-col sm:flex-row gap-3">

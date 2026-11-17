@@ -1,5 +1,5 @@
 import { Link, useRoute, useLocation } from "wouter";
-import { Menu, X, Phone, ChevronDown, ArrowRightLeft, Activity, Globe2, ArrowRight, ExternalLink, Server, Code2, Palette, Megaphone, Calculator } from "lucide-react";
+import { Menu, X, Phone, ChevronDown, ArrowRightLeft, Activity, Globe2, ArrowRight, ExternalLink, Server, Code2, Palette, Megaphone, Calculator, Layers, PiggyBank } from "lucide-react";
 import { BUSINESS, PARTNERS } from "@/lib/site";
 import { SERVICE_MENU } from "@/lib/nav";
 import { useState, useEffect, useRef } from "react";
@@ -27,6 +27,8 @@ const SOLUTIONS = [
   { path: "/cloud-migration", label: "Cloud Migration", desc: "Move servers, apps & data with zero surprises", icon: ArrowRightLeft },
   { path: "/managed-cloud", label: "Managed Cloud", desc: "24/7 monitoring, security & cost control", icon: Activity },
   { path: "/cloud-regions", label: "Global Regions", desc: "Data residency & multi-region setups", icon: Globe2 },
+  { path: "/solutions", label: "Solution Blueprints", desc: "E-commerce, fintech, healthcare & SaaS designs", icon: Layers },
+  { path: "/free-cloud-cost-review", label: "Free Cost Review", desc: "See where your cloud bill can shrink", icon: PiggyBank },
 ];
 const CLOUD_PATHS = [...PROVIDERS, ...SOLUTIONS].map((x) => x.path);
 

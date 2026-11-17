@@ -1,4 +1,5 @@
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 import { motion } from "framer-motion";
 import { initials, type Project } from "@/lib/portfolio";
 import { cn } from "@/lib/utils";
@@ -57,16 +58,26 @@ export function ProjectCard({ project, compact = false }: { project: Project; co
             </span>
           ))}
         </div>
-        {p.url && (
-          <a
-            href={p.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all pt-1"
-          >
-            Visit website <ArrowUpRight className="w-4 h-4" />
-          </a>
-        )}
+        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 pt-1">
+          {!compact && (
+            <Link
+              href={`/contact?service=${p.serviceId}`}
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:gap-2.5 transition-all"
+            >
+              Want something like this? <ArrowRight className="w-4 h-4" />
+            </Link>
+          )}
+          {p.url && (
+            <a
+              href={p.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-600 hover:text-primary transition-colors"
+            >
+              Visit website <ArrowUpRight className="w-4 h-4" />
+            </a>
+          )}
+        </div>
       </div>
     </motion.article>
   );
