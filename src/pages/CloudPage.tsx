@@ -17,6 +17,8 @@ import { cn } from "@/lib/utils";
 import { googleCloudFeature } from "@/lib/packages";
 import { checkoutHref } from "@/lib/checkout";
 import NotFound from "@/pages/not-found";
+import { SOLUTIONS } from "@/lib/solutions";
+import { SolutionCard } from "@/pages/Solutions";
 
 const ICONS: Record<CloudIcon, typeof Cloud> = {
   cloud: Cloud,
@@ -45,6 +47,8 @@ export default function CloudPage({ path }: { path: string }) {
   const pricing = PRICING.find((s) => s.id === page.pricingTab);
   const quoteHref = `/contact?service=${page.pricingTab}`;
   const isGoogle = page.path === "/google-cloud";
+  const blueprintCloud = isGoogle ? "Google Cloud" : page.path === "/aws" ? "AWS" : page.path === "/azure" ? "Microsoft Azure" : null;
+  const blueprints = (blueprintCloud ? SOLUTIONS.filter((b) => b.cloud === blueprintCloud) : SOLUTIONS).slice(0, 3);
   // The Google Cloud page stays Google Cloud only: no links to the AWS / Azure pages.
   const others = CLOUD_PAGES.filter((p) => p.path !== page.path && !(isGoogle && (p.path === "/aws" || p.path === "/azure")));
 
@@ -364,6 +368,31 @@ export default function CloudPage({ path }: { path: string }) {
           </div>
         </section>
       )}
+
+      {/* Solution blueprints for this cloud */}
+      <section className="py-20 bg-slate-50 border-t border-slate-200">
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3">Solution blueprints</p>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">What we build {blueprintCloud ? `on ${blueprintCloud}` : "in the cloud"}</h2>
+            </div>
+            <Link href="/solutions" className="text-primary font-semibold inline-flex items-center gap-1.5">All blueprints <ArrowRight className="w-4 h-4" /></Link>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {blueprints.map((b) => <SolutionCard key={b.slug} s={b} />)}
+          </div>
+          <div className="mt-10 rounded-3xl bg-white border border-slate-200 p-6 md:p-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <p className="text-lg font-bold text-slate-900">Already in the cloud? Get a free cost review.</p>
+              <p className="text-slate-600">A senior engineer shows you where your AWS, Google Cloud or Azure bill can shrink. Free, no obligation.</p>
+            </div>
+            <Button asChild className="rounded-full h-12 px-6 shrink-0">
+              <Link href="/free-cloud-cost-review">Get my free review <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            </Button>
+          </div>
+        </div>
+      </section>
 
       <FaqSection items={page.faq} className="py-24 bg-white" />
 

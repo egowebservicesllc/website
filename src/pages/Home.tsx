@@ -13,6 +13,9 @@ import { GoogleCloudPartnerBadge } from "@/components/PartnerBadge";
 import { PromoVideo } from "@/components/PromoVideo";
 import { PlatformLogos } from "@/components/PlatformLogos";
 import { ProjectEstimator } from "@/components/ProjectEstimator";
+import { SolutionCard } from "@/pages/Solutions";
+import { FreeOffersStrip } from "@/pages/FreeOffers";
+import { SOLUTIONS } from "@/lib/solutions";
 import { ProjectCard } from "@/components/ProjectCard";
 import { PROJECTS } from "@/lib/portfolio";
 
@@ -363,6 +366,27 @@ export default function Home() {
           </p>
         </div>
       </section>
+
+      {/* Cloud solution blueprints */}
+      <section className="py-24 bg-white">
+        <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-widest text-primary mb-3">Cloud solution blueprints</p>
+              <h2 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4">How we build cloud platforms</h2>
+              <p className="text-lg text-slate-600 max-w-2xl">E-commerce on Kubernetes, fintech with in-country data, HIPAA-ready healthcare and more, on Google Cloud, AWS and Azure.</p>
+            </div>
+            <Button asChild variant="outline" className="rounded-full bg-white self-start md:self-auto">
+              <Link href="/solutions">All blueprints <ArrowRight className="ml-2 w-4 h-4" /></Link>
+            </Button>
+          </div>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {SOLUTIONS.slice(0, 3).map((s) => <SolutionCard key={s.slug} s={s} />)}
+          </div>
+        </div>
+      </section>
+
+      <FreeOffersStrip />
 
       {/* Why Choose Us / Image Section */}
       <section className="py-24 bg-white overflow-hidden">
