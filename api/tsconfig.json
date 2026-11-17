@@ -11,5 +11,5 @@
     "resolveJsonModule": true,
     "isolatedModules": true
   },
-  "include": ["./**/*.ts", "../src/lib/packages.ts"]
+  "include": ["./**/*.ts", "../src/lib/packages.ts", "../src/lib/detectService.ts"]
 }

@@ -24,6 +24,7 @@ import { confirmationEmail, fixedOrderEmail, teamCopyEmail } from "./_lib/templa
 import { draftReply, writeFixedEmail } from "./_lib/ai.js";
 import { autoBlocks, draftBlocks, postMessage } from "./_lib/slack.js";
 import { findPackage, serviceByLabel } from "../src/lib/packages.js";
+import { detectService } from "../src/lib/detectService.js";
 import type { Lead } from "./_lib/types.js";
 
 const hits = new Map<string, number[]>();
@@ -77,7 +78,17 @@ export async function POST(request: Request) {
 
   const services = Array.isArray(body.services) ? body.services.map((s) => str(s, 60)).filter(Boolean).slice(0, 6) : [];
   const [pkgPart, timelinePart] = str(body.package, 120).split(" · ");
-  const serviceId = str(body.serviceId, 40) || (services[0] ? serviceByLabel(services[0])?.id : undefined) || undefined;
+  let serviceId = str(body.serviceId, 40) || (services[0] ? serviceByLabel(services[0])?.id : undefined) || undefined;
+  // No service picked: work it out from the message ("need a VPS" → hosting).
+  let detected: string | undefined;
+  if (!serviceId && !services.length) {
+    const d = detectService(message);
+    if (d) {
+      serviceId = d.id;
+      services.push(d.label);
+      detected = d.hint;
+    }
+  }
 
   const lead: Lead = {
     ref: makeRef(),
@@ -95,7 +106,7 @@ export async function POST(request: Request) {
     page: str(body.page, 200) || undefined,
     receivedAt: new Date().toISOString(),
   };
-  log("lead_received", { ref: lead.ref, services, package: lead.packageName });
+  log("lead_received", { ref: lead.ref, services, package: lead.packageName, ...(detected ? { detectedFrom: detected } : {}) });
 
   // Fixed-price package?
   const { service, pkg } = findPackage(serviceId, lead.packageName);
