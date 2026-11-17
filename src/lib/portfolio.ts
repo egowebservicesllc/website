@@ -10,6 +10,7 @@
  *  - result:     an outcome you can publish (optional; leave empty if none)
  *  - image:      screenshot in /public/portfolio/ (optional)
  *  - accent:     brand colour used on the card when there's no image
+ *  - serviceId:  service the "Want something like this?" button pre-selects
  *
  * Only publish results and quotes you have the client's permission to share.
  */
@@ -23,6 +24,7 @@ export interface Project {
   url?: string;
   image?: string;
   accent: string;
+  serviceId: "hosting" | "web-dev" | "mobile" | "branding" | "marketing" | "consulting";
 }
 
 export const PROJECTS: Project[] = [
@@ -33,7 +35,10 @@ export const PROJECTS: Project[] = [
     services: ["Design", "Branding", "Marketing"],
     summary:
       "Design, brand identity and marketing for a travel platform for Egypt: recommended hostels for solo travelers, B2B travel services and bookable experiences across Cairo, Alexandria, Hurghada, Sharm El Sheikh, Luxor and Aswan.",
+    url: "https://www.traveliaz.com",
+    image: "/portfolio/traveliaz.webp",
     accent: "#e85d75",
+    serviceId: "web-dev",
   },
   {
     slug: "raymell-bentley",
@@ -42,6 +47,7 @@ export const PROJECTS: Project[] = [
     services: ["Website", "Branding"],
     summary: "A complete brand identity and a professional website, designed together so every touchpoint looks consistent.",
     accent: "#ea580c",
+    serviceId: "web-dev",
   },
   {
     slug: "doomshell-gaming",
@@ -50,6 +56,7 @@ export const PROJECTS: Project[] = [
     services: ["Branding"],
     summary: "A bold brand identity for a gaming brand, built to stand out with its community and across social channels.",
     accent: "#7c3aed",
+    serviceId: "branding",
   },
   {
     slug: "nadia-subratie-things",
@@ -58,6 +65,7 @@ export const PROJECTS: Project[] = [
     services: ["Branding"],
     summary: "A distinctive brand identity that gives the business a recognisable, consistent look.",
     accent: "#db2777",
+    serviceId: "branding",
   },
   {
     slug: "marsie-mccann",
@@ -66,6 +74,7 @@ export const PROJECTS: Project[] = [
     services: ["Website"],
     summary: "A clean, professional website that presents the work clearly and makes it easy to get in touch.",
     accent: "#0d9488",
+    serviceId: "web-dev",
   },
 ];
 

@@ -11,10 +11,10 @@ export function track(event: string, params: Record<string, unknown> = {}) {
   }
 }
 
-export const trackLead = (method: 'contact_form' | 'calendly' | 'support_ticket', extra: Record<string, unknown> = {}) => {
+export const trackLead = (method: 'contact_form' | 'calendly' | 'support_ticket' | 'lead_magnet', extra: Record<string, unknown> = {}) => {
   track('generate_lead', { method, ...extra });
   // Paid-ads conversions (Google Ads / Meta / LinkedIn). Support tickets are
   // existing clients, so they are not reported to ad platforms.
-  if (method === 'contact_form') adsConversion('lead', { content_category: String(extra.services ?? '') });
+  if (method === 'contact_form' || method === 'lead_magnet') adsConversion('lead', { content_category: String(extra.services ?? '') });
   if (method === 'calendly') adsConversion('booking');
 };

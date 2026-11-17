@@ -7,6 +7,7 @@
 import { LANDING_PAGES } from "./landing";
 import { CLOUD_PAGES } from "./cloud";
 import { BLOG_POSTS } from "./blog";
+import { SOLUTIONS } from "./solutions";
 
 export const SITE_URL = "https://www.egowebservices.com";
 export const BRAND = "EGO Web Services";
@@ -50,6 +51,10 @@ export const BUSINESS = {
   // in the header, contact page, footer, sticky mobile bar and structured data.
   phone: "",
   phoneDisplay: "",
+  // WhatsApp Business number in international format, digits only
+  // (e.g. "201001234567"). The chat button stays hidden while this is empty.
+  whatsapp: "",
+  whatsappMessage: "Hi EGO Web Services, I'd like to ask about ",
   street: "1496 Old Henderson Rd",
   city: "Columbus",
   region: "OH",
@@ -105,6 +110,8 @@ export interface PageSeo {
   faq?: FaqItem[];
   /** Blog article: adds BlogPosting structured data and a Home > Blog > article breadcrumb. */
   article?: { headline: string; datePublished: string; dateModified?: string };
+  /** Middle breadcrumb level, e.g. Home > Solutions > page. */
+  parent?: { name: string; path: string };
 }
 
 export const HOME_FAQ: FaqItem[] = [
@@ -293,6 +300,41 @@ for (const post of BLOG_POSTS) {
   };
 }
 
+PAGES["/solutions"] = {
+  path: "/solutions",
+  name: "Cloud solutions",
+  title: "Cloud Solution Blueprints by Industry",
+  description: "How we build e-commerce, fintech, healthcare, SaaS, logistics and streaming platforms on Google Cloud, AWS and Azure, with architecture and timelines.",
+};
+for (const sol of SOLUTIONS) {
+  PAGES[`/solutions/${sol.slug}`] = {
+    path: `/solutions/${sol.slug}`,
+    name: sol.short,
+    title: sol.metaTitle,
+    description: sol.description,
+    faq: sol.faq,
+    parent: { name: "Cloud solutions", path: "/solutions" },
+  };
+}
+PAGES["/free-cloud-cost-review"] = {
+  path: "/free-cloud-cost-review",
+  name: "Free cloud cost review",
+  title: "Free Cloud Cost Review (AWS, GCP, Azure)",
+  description: "Send us your cloud bill and a senior engineer will point out where you're overpaying on AWS, Google Cloud or Azure. Free, no obligation.",
+};
+PAGES["/free-website-check"] = {
+  path: "/free-website-check",
+  name: "Free website check",
+  title: "Free Website Speed & SEO Check",
+  description: "Get a free speed, SEO and mobile check of your website from our engineers, with the top fixes in priority order. No obligation.",
+};
+PAGES["/cloud-migration-checklist"] = {
+  path: "/cloud-migration-checklist",
+  name: "Cloud migration checklist",
+  title: "Free Cloud Migration Checklist",
+  description: "A practical 40-point checklist for moving to Google Cloud, AWS or Azure: planning, security, data, cut-over and costs. Free and printable.",
+};
+
 export const PRERENDER_ROUTES = Object.keys(PAGES);
 
 export const INDEXABLE_ROUTES = Object.values(PAGES)
@@ -316,6 +358,7 @@ export function pageJsonLd(page: PageSeo): object[] {
   if (page.path !== "/") {
     const crumbs = [{ name: "Home", item: `${SITE_URL}/` }];
     if (page.article) crumbs.push({ name: "Blog", item: canonicalUrl("/blog") });
+    if (page.parent) crumbs.push({ name: page.parent.name, item: canonicalUrl(page.parent.path) });
     crumbs.push({ name: page.name, item: canonicalUrl(page.path) });
     out.push({
       "@context": "https://schema.org",
