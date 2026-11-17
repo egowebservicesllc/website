@@ -50,9 +50,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/google-cloud",
     navLabel: "Google Cloud",
-    metaTitle: "Google Cloud Partner: GCP Consulting, Migration & Managed Services",
+    metaTitle: "Google Cloud Consulting & Migration",
     metaDescription:
-      "EGO Web Services is a Google Cloud Partner serving businesses worldwide: GCP consulting, migration, GKE, BigQuery, cost optimization and managed Google Cloud by senior engineers.",
+      "Certified Google Cloud Partner: migration, GKE, BigQuery, AI and managed Google Cloud. Fixed-price readiness assessment and help with Google funding.",
     eyebrow: "Google Cloud Partner · Worldwide",
     h1: "Google Cloud consulting & migration",
     h1Highlight: "from a Google Cloud Partner.",
@@ -101,9 +101,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/cloud-migration",
     navLabel: "Cloud Migration",
-    metaTitle: "Cloud Migration Services: Google Cloud, AWS & Azure",
+    metaTitle: "Cloud Migration: GCP, AWS & Azure",
     metaDescription:
-      "Plan and migrate servers, apps and databases to Google Cloud, AWS or Azure with minimal downtime. Cloud readiness assessments from $2,000, migrations from $5,500.",
+      "Move servers, apps and databases to Google Cloud, AWS or Azure with a written plan, clear pricing, backups and staff handover. Free consultation.",
     eyebrow: "Cloud Migration Services",
     h1: "Cloud migration",
     h1Highlight: "without the downtime or surprises.",
@@ -140,9 +140,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/managed-cloud",
     navLabel: "Managed Cloud",
-    metaTitle: "Managed Cloud Services & Cloud Cost Optimization",
+    metaTitle: "Managed Cloud & Cost Optimization",
     metaDescription:
-      "24/7 managed cloud services for Google Cloud, AWS and Azure: monitoring, patching, backups, security and cost optimization by senior engineers, for businesses worldwide.",
+      "24/7 monitored managed cloud on Google Cloud, AWS and Azure: security hardening, backups, cost savings and CTO-level advice from senior engineers.",
     eyebrow: "Managed Cloud & Cost Optimization",
     h1: "Managed cloud that stays secure,",
     h1Highlight: "fast and on budget.",
@@ -179,9 +179,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/aws",
     navLabel: "AWS",
-    metaTitle: "AWS Consulting Services: Migration, Cost Optimization & Managed AWS",
+    metaTitle: "AWS Consulting & Migration Services",
     metaDescription:
-      "AWS consulting services by senior cloud engineers: AWS migration, landing zones, EKS and serverless, security reviews, cost optimization and managed AWS for businesses worldwide.",
+      "AWS consulting from senior engineers: architecture and cost reviews, migration to AWS, security hardening and managed AWS. Free consultation.",
     eyebrow: "Amazon Web Services",
     h1: "AWS consulting & migration",
     h1Highlight: "by senior cloud engineers.",
@@ -241,9 +241,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/azure",
     navLabel: "Microsoft Azure",
-    metaTitle: "Microsoft Azure Consulting, Migration & Managed Azure Services",
+    metaTitle: "Azure Consulting & Migration Services",
     metaDescription:
-      "Microsoft Azure consulting, migration and managed services for businesses using Microsoft 365, Windows Server and SQL Server. Landing zones, AKS, licence savings, fixed pricing.",
+      "Microsoft Azure consulting: migrate servers and apps, use your existing Microsoft licences (Azure Hybrid Benefit), and get managed Azure support.",
     eyebrow: "Microsoft Azure",
     h1: "Microsoft Azure consulting",
     h1Highlight: "and migration, done properly.",
@@ -298,9 +298,9 @@ export const CLOUD_PAGES: CloudPageConfig[] = [
   {
     path: "/cloud-regions",
     navLabel: "Global Regions",
-    metaTitle: "Global Cloud Regions & Data Residency",
+    metaTitle: "Cloud Regions & Data Residency",
     metaDescription:
-      "Deploy on Google Cloud, AWS or Azure regions worldwide. We design multi-region, data-residency-aware cloud architectures for businesses in any country.",
+      "Choose the right cloud region for speed and data-residency rules: Google Cloud, AWS and Azure regions worldwide, planned by senior cloud engineers.",
     eyebrow: "Global Cloud · Any Region",
     h1: "Your cloud, in the right region,",
     h1Highlight: "wherever your customers are.",
