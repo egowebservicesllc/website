@@ -16,6 +16,7 @@ import ThankYou from '@/pages/ThankYou';
 import Checkout from '@/pages/Checkout';
 import Portal from '@/pages/Portal';
 import { Privacy, Terms } from '@/pages/Legal';
+import { BlogIndex, BlogPostPage } from '@/pages/Blog';
 import { ConsentBanner } from '@/components/ConsentBanner';
 import { EngagePrompt } from '@/components/EngagePrompt';
 import CloudPage from '@/pages/CloudPage';
@@ -42,6 +43,8 @@ function Router() {
       <Route path="/portal" component={Portal} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
+      <Route path="/blog" component={BlogIndex} />
+      <Route path="/blog/:slug" component={BlogPostPage} />
       <Route path="/lp/:slug" component={LandingPage} />
       {CLOUD_PAGES.map((p) => (
         <Route key={p.path} path={p.path}>
