@@ -6,6 +6,7 @@ import { BUSINESS, SERVICE_OPTIONS, type ServiceId } from '@/lib/site';
 import { attributionSummary } from '@/lib/ads';
 import { trackLead } from '@/lib/track';
 import { findCheckoutPackage } from '@/lib/checkout';
+import { detectService } from '@/lib/detectService';
 import { cn } from '@/lib/utils';
 
 const SERVICE_PREFIX = '[Service: ';
@@ -94,8 +95,46 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
     return () => window.removeEventListener(SELECT_PACKAGE_EVENT, onPackage);
   }, [defaultService]);
 
-  const toggleService = (label: string) =>
-    setServices((prev) => (prev.includes(label) ? prev.filter((s) => s !== label) : [...prev, label]));
+  // Picking a chip by hand always wins over the automatic guess below.
+  const userPickedRef = useRef(false);
+  const [autoHint, setAutoHintState] = useState<{ label: string; hint: string } | null>(null);
+  const autoRef = useRef<{ label: string; hint: string } | null>(null);
+  const setAutoHint = (v: { label: string; hint: string } | null) => {
+    autoRef.current = v;
+    setAutoHintState(v);
+  };
+  const toggleService = (label: string) => {
+    userPickedRef.current = true;
+    const auto = autoRef.current?.label;
+    setAutoHint(null);
+    setServices((prev) => {
+      // Replace our guess rather than adding to it.
+      const base = auto && auto !== label ? prev.filter((s) => s !== auto) : prev;
+      return base.includes(label) ? base.filter((s) => s !== label) : [...base, label];
+    });
+  };
+
+  // Visitor didn't pick a service: guess it from the message ("need a VPS" → Enterprise Hosting).
+  const autoTimer = useRef<number | undefined>(undefined);
+  const guessFromMessage = (text: string) => {
+    if (userPickedRef.current || pkgRef.current) return;
+    if (servicesRef.current.length && !autoRef.current) return; // pre-selected from the URL or a package button
+    const d = detectService(text);
+    if (d) {
+      servicesRef.current = [d.label];
+      setServices([d.label]);
+      setAutoHint({ label: d.label, hint: d.hint });
+    } else if (autoRef.current) {
+      servicesRef.current = [];
+      setServices([]);
+      setAutoHint(null);
+    }
+  };
+  const onMessageInput = (e: React.FormEvent<HTMLTextAreaElement>) => {
+    const text = e.currentTarget.value;
+    window.clearTimeout(autoTimer.current);
+    autoTimer.current = window.setTimeout(() => guessFromMessage(text), 400);
+  };
 
   // Runs in the capture phase on the wrapper, i.e. before MailerLite's own submit handler.
   const onSubmitCapture = (e: React.FormEvent<HTMLDivElement>) => {
@@ -105,6 +144,15 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
     const val = (n: string) => (form.querySelector<HTMLInputElement>(`[name="fields[${n}]"]`)?.value || '').trim();
     const last = appliedPrefixRef.current;
     const original = last && msg.value.startsWith(last) ? msg.value.slice(last.length) : msg.value;
+    if (!servicesRef.current.length && !userPickedRef.current) {
+      window.clearTimeout(autoTimer.current);
+      const d = detectService(original);
+      if (d) {
+        servicesRef.current = [d.label];
+        setServices([d.label]);
+        setAutoHint({ label: d.label, hint: d.hint });
+      }
+    }
     const parts: string[] = [];
     if (servicesRef.current.length) parts.push(`${SERVICE_PREFIX}${servicesRef.current.join(', ')}]`);
     if (pkgRef.current) parts.push(`[Package: ${pkgRef.current}]`);
@@ -474,6 +522,12 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
                       );
                     })}
                   </div>
+                  {autoHint && services.includes(autoHint.label) && (
+                    <p className="mt-3 text-sm text-slate-600" role="status">
+                      <span className="font-semibold text-slate-900">{autoHint.label}</span> selected because you mentioned{' '}
+                      {autoHint.hint}. Not right? Tap another service.
+                    </p>
+                  )}
                   {pkg && (
                     <p className="mt-3 text-sm text-slate-600">
                       Package: <span className="font-semibold text-slate-900">{pkg}</span>{' '}
@@ -830,6 +884,7 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
                         aria-required="true"
                         maxLength={1024}
                         placeholder="What are you looking to build or fix? Any deadline or budget in mind?"
+                        onInput={onMessageInput}
                         required
                       ></textarea>
                     </div>
