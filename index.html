@@ -37,67 +37,227 @@
     <link rel="preconnect" href="https://www.googletagmanager.com" />
 
     <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
     {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": ["ProfessionalService", "Organization"],
-          "@id": "https://www.egowebservices.com/#business",
-          "name": "EGO Web Services",
-          "legalName": "EGO Web Services LLC",
-          "url": "https://www.egowebservices.com/",
-          "logo": "https://www.egowebservices.com/favicon-512.png",
-          "image": "https://www.egowebservices.com/og-image.jpg",
-          "description": "Google Cloud Partner serving businesses worldwide, providing cloud consulting and migration on Google Cloud, AWS and Microsoft Azure, managed cloud, enterprise hosting, web and mobile development, branding and digital marketing since 2016.",
-          "knowsAbout": ["Google Cloud", "Google Cloud Platform", "Google Kubernetes Engine", "BigQuery", "Amazon Web Services", "Microsoft Azure", "Cloud migration", "Managed cloud services", "Cloud cost optimization", "Kubernetes", "Web development", "Managed hosting"],
-          "slogan": "Substance, not hype.",
-          "foundingDate": "2016",
-          "email": "info@egowebservices.com",
-          "priceRange": "$$",
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": "1496 Old Henderson Rd",
-            "addressLocality": "Columbus",
-            "addressRegion": "OH",
-            "postalCode": "43220",
-            "addressCountry": "US"
+      "@type": [
+        "ProfessionalService",
+        "Organization"
+      ],
+      "@id": "https://www.egowebservices.com/#business",
+      "name": "EGO Web Services",
+      "alternateName": "EGO",
+      "legalName": "EGO Web Services LLC",
+      "url": "https://www.egowebservices.com/",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://www.egowebservices.com/brand/ego-icon-512.png",
+        "width": 512,
+        "height": 512
+      },
+      "image": "https://www.egowebservices.com/og-image.jpg",
+      "description": "Google Cloud Partner serving businesses worldwide, providing cloud consulting and migration on Google Cloud, AWS and Microsoft Azure, managed cloud, enterprise hosting, web and mobile development, branding and digital marketing since 2016.",
+      "knowsAbout": [
+        "Google Cloud",
+        "Google Cloud Platform",
+        "Google Kubernetes Engine",
+        "BigQuery",
+        "Amazon Web Services",
+        "Microsoft Azure",
+        "Cloud migration",
+        "Managed cloud services",
+        "Cloud cost optimization",
+        "Kubernetes",
+        "Web development",
+        "Managed hosting"
+      ],
+      "slogan": "Substance, not hype.",
+      "foundingDate": "2016",
+      "email": "info@egowebservices.com",
+      "priceRange": "$$",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "1496 Old Henderson Rd",
+        "addressLocality": "Columbus",
+        "addressRegion": "OH",
+        "postalCode": "43220",
+        "addressCountry": "US"
+      },
+      "areaServed": "Worldwide",
+      "sameAs": [
+        "https://www.linkedin.com/company/ego-web-services-llc/",
+        "https://www.facebook.com/egowebservices/",
+        "https://instagram.com/ego.web.services",
+        "https://www.youtube.com/@egowebservices",
+        "https://www.tiktok.com/@egowebservices",
+        "https://cloud.google.com/find-a-partner/partner/ego-web-services-llc"
+      ],
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Digital services",
+        "itemListElement": [
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Google Cloud Consulting & Migration",
+              "url": "https://www.egowebservices.com/google-cloud"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "2000",
+              "priceCurrency": "USD"
+            }
           },
-          "areaServed": "Worldwide",
-          "sameAs": [
-            "https://www.linkedin.com/company/ego-web-services-llc/",
-            "https://www.facebook.com/egowebservices/",
-            "https://instagram.com/ego.web.services",
-            "https://www.youtube.com/@egowebservices",
-            "https://www.tiktok.com/@egowebservices",
-            "https://cloud.google.com/find-a-partner/partner/ego-web-services-llc"
-          ],
-          "hasOfferCatalog": {
-            "@type": "OfferCatalog",
-            "name": "Digital services",
-            "itemListElement": [
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Google Cloud Consulting & Migration", "url": "https://www.egowebservices.com/google-cloud" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "2000", "priceCurrency": "USD" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Cloud Migration Services", "url": "https://www.egowebservices.com/cloud-migration" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "5500", "priceCurrency": "USD" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Managed Cloud Services", "url": "https://www.egowebservices.com/managed-cloud" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "AWS Consulting", "url": "https://www.egowebservices.com/aws" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Microsoft Azure Consulting", "url": "https://www.egowebservices.com/azure" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Enterprise Hosting" }, "priceSpecification": { "@type": "UnitPriceSpecification", "price": "9", "priceCurrency": "USD", "unitText": "MONTH" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Web Development" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "1500", "priceCurrency": "USD" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Mobile App Development" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "6000", "priceCurrency": "USD" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Branding & Design" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "950", "priceCurrency": "USD" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "Digital Marketing" }, "priceSpecification": { "@type": "UnitPriceSpecification", "price": "1200", "priceCurrency": "USD", "unitText": "MONTH" } },
-              { "@type": "Offer", "itemOffered": { "@type": "Service", "name": "IT Consulting" }, "priceSpecification": { "@type": "PriceSpecification", "minPrice": "2000", "priceCurrency": "USD" } }
-            ]
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Cloud Migration Services",
+              "url": "https://www.egowebservices.com/cloud-migration"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "5500",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Managed Cloud Services",
+              "url": "https://www.egowebservices.com/managed-cloud"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "AWS Consulting",
+              "url": "https://www.egowebservices.com/aws"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Microsoft Azure Consulting",
+              "url": "https://www.egowebservices.com/azure"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Enterprise Hosting"
+            },
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "9",
+              "priceCurrency": "USD",
+              "unitText": "MONTH"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Web Development"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "1500",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Mobile App Development"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "6000",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Branding & Design"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "950",
+              "priceCurrency": "USD"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "Digital Marketing"
+            },
+            "priceSpecification": {
+              "@type": "UnitPriceSpecification",
+              "price": "1200",
+              "priceCurrency": "USD",
+              "unitText": "MONTH"
+            }
+          },
+          {
+            "@type": "Offer",
+            "itemOffered": {
+              "@type": "Service",
+              "name": "IT Consulting"
+            },
+            "priceSpecification": {
+              "@type": "PriceSpecification",
+              "minPrice": "2000",
+              "priceCurrency": "USD"
+            }
           }
+        ]
+      },
+      "contactPoint": [
+        {
+          "@type": "ContactPoint",
+          "contactType": "sales",
+          "email": "info@egowebservices.com",
+          "url": "https://www.egowebservices.com/contact",
+          "availableLanguage": [
+            "English",
+            "Arabic"
+          ],
+          "areaServed": "Worldwide"
         },
         {
-          "@type": "WebSite",
-          "@id": "https://www.egowebservices.com/#website",
-          "url": "https://www.egowebservices.com/",
-          "name": "EGO Web Services",
-          "publisher": { "@id": "https://www.egowebservices.com/#business" }
+          "@type": "ContactPoint",
+          "contactType": "customer support",
+          "email": "info@egowebservices.com",
+          "url": "https://www.egowebservices.com/support",
+          "availableLanguage": [
+            "English",
+            "Arabic"
+          ]
         }
       ]
+    },
+    {
+      "@type": "WebSite",
+      "@id": "https://www.egowebservices.com/#website",
+      "url": "https://www.egowebservices.com/",
+      "name": "EGO Web Services",
+      "publisher": {
+        "@id": "https://www.egowebservices.com/#business"
+      }
     }
+  ]
+}
     </script>
 
     <!-- Google tag (gtag.js) -->
