@@ -136,6 +136,7 @@ export function Footer() {
               {[
                 { title: "About Us", path: "/about" },
                 { title: "Portfolio", path: "/portfolio" },
+                { title: "Blog & guides", path: "/blog" },
                 { title: "Pricing", path: "/pricing" },
                 { title: "Support", path: "/support" },
                 { title: "Client portal", path: "/portal" },
@@ -191,6 +192,9 @@ export function Footer() {
             </Link>
             <Link href="/portfolio">
               <span className="hover:text-primary cursor-pointer transition-colors">Portfolio</span>
+            </Link>
+            <Link href="/blog">
+              <span className="hover:text-primary cursor-pointer transition-colors">Blog</span>
             </Link>
             <Link href="/about">
               <span className="hover:text-primary cursor-pointer transition-colors">About</span>
