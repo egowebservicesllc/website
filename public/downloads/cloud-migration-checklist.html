@@ -1,0 +1,72 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Cloud Migration Checklist · EGO Web Services</title>
+<style>
+@page{size:A4;margin:14mm 14mm 14mm 14mm}
+*{box-sizing:border-box}@media screen{body{max-width:820px;margin:0 auto!important;padding:16px}.grid{columns:1}@media(min-width:700px){.grid{columns:2}}}.bar{display:flex;gap:10px;justify-content:flex-end;margin-bottom:14px}.bar a,.bar button{font:600 14px/1 inherit;font-family:inherit;padding:11px 18px;border-radius:999px;border:1px solid #cbd5e1;background:#fff;color:#0f172a;text-decoration:none;cursor:pointer}.bar button{background:#005fc2;border-color:#005fc2;color:#fff}@media print{.bar{display:none}}body{font-family:"Inter","Segoe UI",Helvetica,Arial,sans-serif;color:#0f172a;margin:0;font-size:9pt;line-height:1.28}
+header{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:3px solid #005fc2;padding-bottom:8px;margin-bottom:10px}
+header img{height:34px}header .t{text-align:right;font-size:8.5pt;color:#64748b}
+h1{font-size:19pt;margin:4px 0 2px;letter-spacing:-.02em}.lead{color:#475569;margin:0 0 10px;font-size:10pt}
+.key{font-size:8.5pt;color:#475569;margin-bottom:8px}.key b{color:#b45309}
+.grid{columns:2;column-gap:9mm}
+section{margin:0 0 7px}
+h2{font-size:11pt;color:#005fc2;margin:0 0 4px;padding:4px 8px;background:#eff6ff;border-radius:6px}
+ul{list-style:none;padding:0;margin:0}
+li{display:flex;gap:7px;padding:2px 1px;border-bottom:1px solid #f1f5f9;break-inside:avoid}
+li:before{content:"";flex:0 0 11px;height:11px;border:1.4px solid #94a3b8;border-radius:3px;margin-top:2px}
+li.hot span:after{content:" ★";color:#b45309;font-weight:700}
+footer{margin-top:8px;padding:9px 12px;background:#0f172a;color:#fff;border-radius:8px;display:flex;justify-content:space-between;align-items:center;font-size:9pt}
+footer b{color:#93c5fd}
+</style></head><body>
+<div class="bar"><a href="/solutions">Cloud blueprints</a><button type="button" onclick="window.print()">Save as PDF / Print</button></div>
+<header><img src="/brand/ego-logo-horizontal.png" alt="EGO Web Services"><div class="t">Google Cloud Partner · Since 2016<br>egowebservices.com</div></header>
+<h1>Cloud Migration Checklist</h1>
+<p class="lead">40 checks our engineers run before moving any business to Google Cloud, AWS or Microsoft Azure. Work through it with your team, or use it to check a partner's proposal.</p>
+<div class="key">Tick each item when it's done. Items marked <b>★</b> change cost and risk the most, so don't skip them.</div>
+<div class="grid">
+<section><h2>1. Goals & inventory</h2><ul>
+<li class="hot"><span>Write down why you're moving: cost, scale, reliability, security or a hardware/contract deadline</span></li>
+<li><span>List every server, VM, app, database, file share and scheduled job</span></li>
+<li class="hot"><span>Map dependencies: which systems must move together</span></li>
+<li><span>Record current usage (CPU, memory, storage, traffic) for at least 2 weeks</span></li>
+<li><span>Note licences (Windows Server, SQL Server, Oracle) and whether they can move</span></li>
+<li><span>Identify owners and decision-makers for each system</span></li>
+<li><span>Agree how much downtime each system can tolerate</span></li>
+<li><span>Set a budget and a target date</span></li></ul></section>
+<section><h2>2. Platform & design</h2><ul>
+<li class="hot"><span>Choose the cloud and region(s) based on customers, regulations and existing software</span></li>
+<li><span>Decide per system: move as-is, re-platform, rebuild or retire</span></li>
+<li class="hot"><span>Right-size every machine from real usage, not old hardware specs</span></li>
+<li><span>Prefer managed services (databases, Kubernetes, storage) where they reduce work</span></li>
+<li><span>Design networking: VPCs, subnets, private access, VPN or interconnect to the office</span></li>
+<li><span>Plan high availability: multiple zones for anything customer-facing</span></li>
+<li><span>Define environments: production, staging and development</span></li>
+<li><span>Build the foundation as code (Terraform) so it can be repeated and reviewed</span></li></ul></section>
+<section><h2>3. Security & compliance</h2><ul>
+<li class="hot"><span>Set up identity: single sign-on, multi-factor authentication, no shared admin accounts</span></li>
+<li><span>Apply least-privilege roles; separate production access</span></li>
+<li><span>Store secrets and keys in a managed vault, never in code</span></li>
+<li><span>Turn on audit logging and keep logs in a separate, protected place</span></li>
+<li><span>Encrypt data at rest and in transit</span></li>
+<li class="hot"><span>Check compliance needs (GDPR, HIPAA, PCI DSS, data residency) and document how they're met</span></li>
+<li><span>Put a web application firewall and DDoS protection in front of public apps</span></li>
+<li><span>Enable the cloud's security posture checks and alerts</span></li></ul></section>
+<section><h2>4. Data & cut-over</h2><ul>
+<li class="hot"><span>Take full backups before you start, and test a restore</span></li>
+<li><span>Choose the data-move method: online replication, export/import or physical transfer</span></li>
+<li><span>Rehearse the migration in staging with production-sized data</span></li>
+<li><span>Test performance and load before go-live</span></li>
+<li class="hot"><span>Write a cut-over runbook with a timed rollback plan</span></li>
+<li><span>Lower DNS TTLs a few days before switching</span></li>
+<li><span>Freeze changes and tell users about the cut-over window</span></li>
+<li><span>Verify data and key business flows right after switching</span></li></ul></section>
+<section><h2>5. Costs & operations</h2><ul>
+<li class="hot"><span>Set budgets and alerts from day one</span></li>
+<li><span>Label every resource by team, environment and project for cost tracking</span></li>
+<li class="hot"><span>Use discounts for steady workloads (committed-use, savings plans, reserved instances)</span></li>
+<li><span>Schedule non-production environments to switch off out of hours</span></li>
+<li><span>Set up monitoring, uptime checks and on-call alerts</span></li>
+<li><span>Automate backups and patching, and test restores monthly</span></li>
+<li><span>Hand over documentation and train your team</span></li>
+<li><span>Review costs and performance 30 days after go-live, then monthly</span></li></ul></section>
+</div>
+<footer><span><b>Want a second opinion?</b> A senior engineer will review your plan, free.</span><span>info@egowebservices.com · egowebservices.com/contact</span></footer>
+</body></html>
