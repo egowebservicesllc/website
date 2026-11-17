@@ -58,12 +58,16 @@ const priority = {
   "/cloud-regions": "0.8",
   "/contact": "0.8",
   "/blog": "0.7",
+  "/solutions": "0.8",
+  "/free-cloud-cost-review": "0.8",
+  "/free-website-check": "0.7",
+  "/cloud-migration-checklist": "0.7",
 };
 const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${INDEXABLE_ROUTES.map(
   (r) =>
-    `  <url><loc>${r === "/" ? `${SITE_URL}/` : SITE_URL + r}</loc><lastmod>${today}</lastmod><priority>${priority[r] ?? (r.startsWith("/blog/") ? "0.7" : "0.6")}</priority></url>`,
+    `  <url><loc>${r === "/" ? `${SITE_URL}/` : SITE_URL + r}</loc><lastmod>${today}</lastmod><priority>${priority[r] ?? (/^\/(blog|solutions)\//.test(r) ? "0.7" : "0.6")}</priority></url>`,
 ).join("\n")}
 </urlset>
 `;
