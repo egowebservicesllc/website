@@ -18,7 +18,8 @@ import { ENV, has, log } from "./_lib/env.js";
 import { createLeadTask, commentOnTask, taskUrl } from "./_lib/clickup.js";
 import { platformTag } from "./_lib/portal.js";
 import { createPaymentLink, formatMoney } from "./_lib/stripe.js";
-import { sendNotification, sendTeamCopy } from "./_lib/email.js";
+import { sendFromInfo, sendNotification, sendTeamCopy } from "./_lib/email.js";
+import { serviceReplyEmail } from "./_lib/serviceReplies.js";
 import { confirmationEmail, fixedOrderEmail, teamCopyEmail } from "./_lib/templates.js";
 import { draftReply, writeFixedEmail } from "./_lib/ai.js";
 import { autoBlocks, draftBlocks, postMessage } from "./_lib/slack.js";
@@ -170,6 +171,11 @@ async function notify(o: {
     await sendNotification(lead.email, mail.subject, mail.html, mail.text);
   }
 
+  // 3b. Service-specific "next steps" email from info@ (what happens next, what to send us)
+  const svcMail = serviceReplyEmail({ name: lead.name, ref: lead.ref, serviceId: o.serviceId || lead.serviceId, packageName: packageLabel, page: lead.page, message: lead.message });
+  const svcSent = await sendFromInfo(lead.email, svcMail.subject, svcMail.html, svcMail.text).catch(() => false);
+  if (svcSent) await commentOnTask(task?.id, `📨 "${svcMail.subject}" sent to the client from info@ (topic: ${svcMail.topic}).`);
+
   // 4. Slack: auto-handled, or an AI draft for a human to approve and send
   const draft = paymentUrl ? undefined : await draftReply(lead);
   if (has.slack()) {
@@ -212,7 +218,7 @@ async function notify(o: {
       ? `Fixed-price package: client sent straight to Stripe payment (${priceLabel}) and emailed the payment link automatically. Nothing to approve.`
       : o.fixed
         ? "Fixed-price package, but Stripe isn't connected, so no payment link was created. Send a price from Slack (Edit, add price & send)."
-        : "Confirmation sent to the client. Reply draft below is waiting for a human to review and send.",
+        : "Confirmation and next-steps email sent to the client. Reply draft below is waiting for a human to review and send.",
     draft,
   });
   await sendTeamCopy(copy.subject, copy.html, copy.text, lead.email);
