@@ -4,13 +4,23 @@ import { Layout } from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Link } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Server, Code, Smartphone, PenTool, BarChart, Cloud, ArrowRight } from "lucide-react";
+import { Check, Server, Code, Smartphone, PenTool, BarChart, Cloud, ArrowRight, Lock, FileCheck2, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PRICING_FAQ, BUSINESS } from "@/lib/site";
 import { FaqSection } from "@/components/FaqSection";
 import { ProjectEstimator } from "@/components/ProjectEstimator";
 import { cn } from "@/lib/utils";
 import { PACKAGE_SERVICES } from "@/lib/packages";
+
+/** Service pages that explain each package group in detail. */
+const SERVICE_PAGE: Record<string, string> = {
+  consulting: "/cloud-migration",
+  hosting: "/hosting",
+  "web-dev": "/web-development",
+  mobile: "/mobile-app-development",
+  branding: "/branding-design",
+  marketing: "/digital-marketing",
+};
 
 const SERVICE_ICONS: Record<string, typeof Cloud> = {
   consulting: Cloud,
@@ -61,13 +71,13 @@ export default function Pricing() {
       {/* Header */}
       <section className="bg-slate-50 pt-20 pb-16 md:pt-28 md:pb-24 border-b border-slate-200">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
-          <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-            <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
+          <motion.div initial={false} animate="visible" variants={staggerContainer}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
               Transparent, scalable pricing.
-            </motion.h1>
-            <motion.p variants={fadeInUp} className="text-xl text-slate-600 leading-relaxed">
-              Clear tiers for cloud, hosting, web and marketing. Every project starts with a free consultation and a fixed quote.
-            </motion.p>
+            </h1>
+            <p className="text-xl text-slate-600 leading-relaxed">
+              Clear tiers for cloud, hosting, web and marketing. Buy fixed-price packages online, or get a free fixed quote for anything else.
+            </p>
             <motion.div variants={fadeInUp} className="mt-6">
               <a href="#estimator" className="inline-flex items-center gap-2 text-primary font-semibold hover:gap-3 transition-all">
                 Not sure which package? Take the 30-second estimate <ArrowRight className="w-4 h-4" />
@@ -101,7 +111,7 @@ export default function Pricing() {
             ))}
           </div>
 
-          <AnimatePresence mode="wait">
+          <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={activeCategory}
               initial={{ opacity: 0, y: 20 }}
@@ -119,16 +129,18 @@ export default function Pricing() {
                 <p className="text-lg text-slate-600">
                   {activeService.description}
                 </p>
+                {SERVICE_PAGE[activeService.id] && (
+                  <Link href={SERVICE_PAGE[activeService.id]} className="mt-4 inline-flex items-center gap-1.5 font-semibold text-primary hover:gap-2.5 transition-all">
+                    What's included &amp; how it works <ArrowRight className="w-4 h-4" />
+                  </Link>
+                )}
               </div>
 
               {/* Packages Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                 {activeService.packages.map((pkg, i) => (
-                  <motion.div 
+                  <div
                     key={pkg.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.1 }}
                     className={cn(
                       "relative flex flex-col p-8 rounded-3xl transition-all duration-300 bg-white",
                       pkg.recommended 
@@ -178,17 +190,19 @@ export default function Pricing() {
                       )}
                     >
                       <Link href={`/contact?service=${activeCategory}&package=${encodeURIComponent(pkg.name)}`}>
-                        {pkg.price === 'Custom' ? 'Discuss Requirements' : 'Get Started'}
+                        {pkg.price === 'Custom' ? 'Discuss Requirements' : 'Get a fixed quote'}
                       </Link>
                     </Button>
                     )}
-                  </motion.div>
+                  </div>
                 ))}
               </div>
 
-              <p className="mt-12 text-center text-slate-500 text-sm max-w-2xl mx-auto">
-                Project prices are starting points. After a free consultation you get a fixed quote for your exact scope, usually within {BUSINESS.responseTime}.
-              </p>
+              <div className="mt-12 max-w-4xl mx-auto rounded-2xl bg-slate-50 border border-slate-200 px-6 py-5 grid sm:grid-cols-3 gap-4 text-sm text-slate-700">
+                <div className="flex items-start gap-2.5"><Lock className="w-5 h-5 text-primary shrink-0" /><span><strong className="text-slate-900">Secure payment.</strong> Pay by card through Stripe; we never see your card details.</span></div>
+                <div className="flex items-start gap-2.5"><FileCheck2 className="w-5 h-5 text-primary shrink-0" /><span><strong className="text-slate-900">Fixed quotes.</strong> "From" prices become a fixed quote for your scope within {BUSINESS.responseTime}.</span></div>
+                <div className="flex items-start gap-2.5"><ShieldCheck className="w-5 h-5 text-primary shrink-0" /><span><strong className="text-slate-900">Fair refunds.</strong> See our <Link href="/terms#refunds" className="text-primary underline">refund policy</Link>; cancel hosting any time.</span></div>
+              </div>
             </motion.div>
           </AnimatePresence>
 

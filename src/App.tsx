@@ -11,7 +11,7 @@ import About from '@/pages/About';
 import Support from '@/pages/Support';
 import Contact from '@/pages/Contact';
 import NotFound from '@/pages/not-found';
-import LandingPage from '@/pages/LandingPage';
+import LandingPage, { ServicePage } from '@/pages/LandingPage';
 import ThankYou from '@/pages/ThankYou';
 import Checkout from '@/pages/Checkout';
 import Portal from '@/pages/Portal';
@@ -54,6 +54,11 @@ function Router() {
       <Route path="/free-website-check" component={FreeWebsiteCheck} />
       <Route path="/cloud-migration-checklist" component={MigrationChecklist} />
       <Route path="/lp/:slug" component={LandingPage} />
+      <Route path="/hosting" component={ServicePage} />
+      <Route path="/web-development" component={ServicePage} />
+      <Route path="/mobile-app-development" component={ServicePage} />
+      <Route path="/branding-design" component={ServicePage} />
+      <Route path="/digital-marketing" component={ServicePage} />
       {CLOUD_PAGES.map((p) => (
         <Route key={p.path} path={p.path}>
           <CloudPage path={p.path} />

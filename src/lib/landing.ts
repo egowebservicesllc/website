@@ -115,7 +115,7 @@ export const LANDING_PAGES: LandingPageConfig[] = [
     subheadline:
       "Business-critical hosting managed by senior engineers: 24/7 monitoring, automated daily backups and DDoS protection, from a $9/mo site to dedicated servers and custom cloud.",
     bullets: [
-      "99.99% uptime guarantee",
+      "Built for 99.99% uptime, monitored 24/7",
       "Automated daily backups & free SSL",
       "DDoS protection & global CDN",
       "24/7 infrastructure monitoring & support",
@@ -250,6 +250,41 @@ export const LANDING_PAGES: LandingPageConfig[] = [
     imageAlt: "Marketing team reviewing campaign results",
   },
 ];
+
+/**
+ * Indexable service pages on the main site that reuse a landing page's copy
+ * (with the normal navigation, plus proof and free offers). The /lp/ versions
+ * stay noindex for ads.
+ */
+export interface ServicePageExtra {
+  path: string;
+  /** Portfolio project tags that count as proof for this service. */
+  proofTags: string[];
+  /** Free offer to show, if any. */
+  offer?: { href: string; title: string; desc: string };
+  guide?: { href: string; label: string };
+}
+export const SERVICE_PAGES: Record<string, ServicePageExtra> = {
+  "managed-hosting": {
+    path: "/hosting",
+    proofTags: [],
+    offer: { href: "/free-website-check", title: "Is your current host slowing you down?", desc: "Get a free speed, SEO and mobile check of your site before you move." },
+    guide: { href: "/blog/shared-vs-vps-vs-dedicated-hosting", label: "Shared vs VPS vs dedicated hosting: which do you need?" },
+  },
+  "web-development": {
+    path: "/web-development",
+    proofTags: ["Website"],
+    offer: { href: "/free-website-check", title: "Already have a website?", desc: "Get a free speed, SEO and mobile check with the top fixes in priority order." },
+  },
+  "mobile-app-development": { path: "/mobile-app-development", proofTags: [] },
+  branding: { path: "/branding-design", proofTags: ["Branding", "Design"] },
+  "digital-marketing": {
+    path: "/digital-marketing",
+    proofTags: ["Marketing"],
+    offer: { href: "/free-website-check", title: "Start with a free website check", desc: "See what's holding your site back in Google and with visitors, free." },
+  },
+};
+export const servicePageSlug = (path: string) => Object.keys(SERVICE_PAGES).find((k) => SERVICE_PAGES[k].path === path);
 
 export function getLanding(slug: string) {
   return LANDING_PAGES.find((p) => p.slug === slug);

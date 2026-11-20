@@ -13,7 +13,11 @@ import { googleCloudFeature } from "@/lib/packages";
 import { checkoutHref } from "@/lib/checkout";
 import { CountUp } from "@/components/ui/count-up";
 import { BUSINESS } from "@/lib/site";
-import { getLanding } from "@/lib/landing";
+import { getLanding, SERVICE_PAGES, servicePageSlug, type LandingPageConfig, type ServicePageExtra } from "@/lib/landing";
+import { Layout } from "@/components/layout/Layout";
+import { ProjectCard } from "@/components/ProjectCard";
+import { PROJECTS } from "@/lib/portfolio";
+import { useLocation } from "wouter";
 import { adsConversion } from "@/lib/ads";
 import { cn } from "@/lib/utils";
 import { SERVICES as PRICING } from "@/pages/Pricing";
@@ -30,19 +34,61 @@ function scrollToQuote() {
   if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 16, behavior: "smooth" });
 }
 
+/** Proof, free offer and guide: shown on the indexable service pages only. */
+function SiteExtras({ page, extra }: { page: LandingPageConfig; extra: ServicePageExtra }) {
+  const projects = PROJECTS.filter((p) => p.services.some((t) => extra.proofTags.includes(t))).slice(0, 3);
+  if (!projects.length && !extra.offer && !extra.guide) return null;
+  return (
+    <section className="py-20 bg-white border-b border-slate-200">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl space-y-12">
+        {projects.length > 0 && (
+          <div>
+            <div className="flex items-end justify-between gap-4 mb-8">
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900">Recent work</h2>
+              <Link href="/portfolio" className="text-primary font-semibold inline-flex items-center gap-1.5 shrink-0">All projects <ArrowRight className="w-4 h-4" /></Link>
+            </div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {projects.map((p) => <ProjectCard key={p.slug} project={p} />)}
+            </div>
+          </div>
+        )}
+        {(extra.offer || extra.guide) && (
+          <div className="grid md:grid-cols-2 gap-6">
+            {extra.offer && (
+              <Link href={extra.offer.href} className="group rounded-3xl bg-blue-50 border border-blue-100 p-8 hover:border-primary/40 transition-colors">
+                <span className="block text-sm font-semibold uppercase tracking-widest text-primary mb-2">Free</span>
+                <span className="block text-xl font-bold text-slate-900 mb-2">{extra.offer.title}</span>
+                <span className="block text-slate-600 mb-4">{extra.offer.desc}</span>
+                <span className="inline-flex items-center gap-2 font-semibold text-primary">Get it free <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+              </Link>
+            )}
+            {extra.guide && (
+              <Link href={extra.guide.href} className="group rounded-3xl bg-slate-50 border border-slate-200 p-8 hover:border-primary/40 transition-colors">
+                <span className="block text-sm font-semibold uppercase tracking-widest text-primary mb-2">Guide</span>
+                <span className="block text-xl font-bold text-slate-900 mb-4">{extra.guide.label}</span>
+                <span className="inline-flex items-center gap-2 font-semibold text-primary">Read the guide <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 /**
- * Distraction-free landing page for paid ads (Google/YouTube, Meta, LinkedIn).
- * No main navigation: one goal (the quote form), one secondary (book a call).
+ * The service page itself. `site` = an indexable page inside the normal site
+ * layout (/hosting, /web-development, ...); otherwise the distraction-free
+ * paid-ads version (/lp/<slug>) with no main navigation: one goal (the quote
+ * form), one secondary (book a call).
  */
-export default function LandingPage({ params }: { params: { slug: string } }) {
-  const page = getLanding(params.slug);
-  const isGoogleLp = params.slug === "google-cloud";
+export function ServiceLanding({ page, site = false }: { page: LandingPageConfig; site?: boolean }) {
+  const isGoogleLp = page.slug === "google-cloud";
+  const extra = site ? SERVICE_PAGES[page.slug] : undefined;
 
   useEffect(() => {
-    if (page) adsConversion("view_content", { content_name: page.metaTitle, content_category: page.serviceId });
-  }, [page]);
-
-  if (!page) return <NotFound />;
+    if (!site) adsConversion("view_content", { content_name: page.metaTitle, content_category: page.serviceId });
+  }, [page, site]);
 
   const pricing = PRICING.find((s) => s.id === page.serviceId);
   const packages = pricing?.packages.filter((p) => p.price !== "Custom").slice(0, 3) ?? [];
@@ -52,53 +98,23 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
     scrollToQuote();
   };
 
-  return (
-    <div className="flex flex-col min-h-[100dvh] bg-background">
-      <Seo path={`/lp/${page.slug}`} />
-
-      {/* Minimal header: no menu to leak clicks away from the form */}
-      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
-        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-3">
-            <BrandLogo size={36} />
-            <span className="font-bold text-lg tracking-tight hidden sm:inline-block">EGO Web Services</span>
-          </Link>
-          <div className="flex items-center gap-2">
-            {BUSINESS.phone && (
-              <a href={`tel:${BUSINESS.phone}`} className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-primary mr-2">
-                <Phone className="w-4 h-4" />
-                {BUSINESS.phoneDisplay || BUSINESS.phone}
-              </a>
-            )}
-            <Button asChild variant="outline" className="rounded-full hidden sm:inline-flex">
-              <a href="#book-a-call">
-                <CalendarDays className="w-4 h-4 mr-2" />
-                Book a call
-              </a>
-            </Button>
-            <Button className="rounded-full" onClick={scrollToQuote}>
-              Free Quote
-            </Button>
-          </div>
-        </div>
-      </header>
-
-      <main id="main-content" className="flex-grow">
+  const body = (
+      <>
         {/* Hero + form */}
         <section className="relative overflow-hidden bg-slate-50 border-b border-slate-200">
           <div className="absolute -top-40 -right-40 w-[600px] h-[600px] rounded-full bg-blue-50/70 blur-3xl pointer-events-none" />
           <div className="container mx-auto px-4 md:px-6 py-12 md:py-20 relative">
             <div className="grid lg:grid-cols-2 gap-10 lg:gap-16 items-start max-w-6xl mx-auto">
-              <motion.div initial="hidden" animate="visible" variants={stagger} className="lg:pt-6">
+              <motion.div initial={false} animate="visible" variants={stagger} className="lg:pt-6">
                 <motion.span variants={fadeInUp} className="inline-block py-1.5 px-3 rounded-full bg-blue-100/50 text-blue-800 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-200">
                   {page.eyebrow}
                 </motion.span>
-                <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
+                <h1 className="text-4xl md:text-5xl lg:text-[3.4rem] font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6">
                   {page.headline} <span className="text-primary">{page.highlight}</span>
-                </motion.h1>
-                <motion.p variants={fadeInUp} className="text-lg md:text-xl text-slate-600 leading-relaxed mb-8">
+                </h1>
+                <p className="text-lg md:text-xl text-slate-600 leading-relaxed mb-8">
                   {page.subheadline}
-                </motion.p>
+                </p>
                 <motion.ul variants={stagger} className="space-y-3 mb-8">
                   {page.bullets.map((b) => (
                     <motion.li key={b} variants={fadeInUp} className="flex items-start gap-3">
@@ -113,19 +129,16 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
                 </motion.div>
               </motion.div>
 
-              <motion.div
+              <div
                 id="quote"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.2 }}
-                className="scroll-mt-20 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl"
+                className="scroll-mt-24 bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-xl"
               >
                 <h2 className="text-2xl font-bold text-slate-900 mb-1">Get your free quote</h2>
                 <p className="text-slate-600 mb-6 text-sm">
                   A senior engineer replies within {BUSINESS.responseTime}. No obligation.
                 </p>
                 <MailerLiteContactForm defaultService={page.serviceId} />
-              </motion.div>
+              </div>
             </div>
           </div>
         </section>
@@ -235,6 +248,8 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
           </section>
         )}
 
+        {site && extra && <SiteExtras page={page} extra={extra} />}
+
         {/* Process */}
         <section className="py-20 bg-white">
           <div className="container mx-auto px-4 md:px-6 max-w-6xl">
@@ -246,7 +261,7 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
                 { icon: Rocket, title: "We deliver & support", desc: "Senior engineers build, launch and support it 24/7." },
               ].map((step, i) => (
                 <li key={step.title} className="relative bg-slate-50 p-8 rounded-3xl border border-slate-100">
-                  <span className="absolute top-6 right-8 text-5xl font-black text-slate-200/70 select-none" aria-hidden="true">0{i + 1}</span>
+                  <span className="absolute top-6 right-8 text-5xl font-black text-slate-300 select-none" aria-hidden="true">0{i + 1}</span>
                   <div className="w-12 h-12 bg-white shadow-sm text-primary rounded-2xl flex items-center justify-center mb-5">
                     <step.icon className="w-6 h-6" />
                   </div>
@@ -287,6 +302,51 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
             </Button>
           </div>
         </section>
+      </>
+  );
+
+  if (site && extra) {
+    return (
+      <Layout>
+        <Seo path={extra.path} />
+        {body}
+      </Layout>
+    );
+  }
+
+  return (
+    <div className="flex flex-col min-h-[100dvh] bg-background">
+      <Seo path={`/lp/${page.slug}`} />
+
+      {/* Minimal header: no menu to leak clicks away from the form */}
+      <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border">
+        <div className="container mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-3">
+            <BrandLogo size={36} />
+            <span className="font-bold text-lg tracking-tight hidden sm:inline-block">EGO Web Services</span>
+          </Link>
+          <div className="flex items-center gap-2">
+            {BUSINESS.phone && (
+              <a href={`tel:${BUSINESS.phone}`} className="hidden sm:flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-primary mr-2">
+                <Phone className="w-4 h-4" />
+                {BUSINESS.phoneDisplay || BUSINESS.phone}
+              </a>
+            )}
+            <Button asChild variant="outline" className="rounded-full hidden sm:inline-flex">
+              <a href="#book-a-call">
+                <CalendarDays className="w-4 h-4 mr-2" />
+                Book a call
+              </a>
+            </Button>
+            <Button className="rounded-full" onClick={scrollToQuote}>
+              Free Quote
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main id="main-content" className="flex-grow">
+        {body}
       </main>
 
       {/* Minimal footer */}
@@ -321,4 +381,20 @@ export default function LandingPage({ params }: { params: { slug: string } }) {
       </div>
     </div>
   );
+}
+
+/** /lp/:slug (ads) */
+export default function LandingPage({ params }: { params: { slug: string } }) {
+  const page = getLanding(params.slug);
+  if (!page) return <NotFound />;
+  return <ServiceLanding page={page} />;
+}
+
+/** /hosting, /web-development, ... (indexable) */
+export function ServicePage() {
+  const [location] = useLocation();
+  const slug = servicePageSlug(location);
+  const page = slug ? getLanding(slug) : undefined;
+  if (!page) return <NotFound />;
+  return <ServiceLanding page={page} site />;
 }

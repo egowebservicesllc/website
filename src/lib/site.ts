@@ -4,7 +4,7 @@
  * build time, so every route ships with correct <head> tags in its static HTML.
  */
 
-import { LANDING_PAGES } from "./landing";
+import { LANDING_PAGES, SERVICE_PAGES } from "./landing";
 import { CLOUD_PAGES } from "./cloud";
 import { BLOG_POSTS } from "./blog";
 import { SOLUTIONS } from "./solutions";
@@ -280,6 +280,18 @@ for (const lp of LANDING_PAGES) {
     noindex: true, // ad landing pages: keep out of search results
     faq: lp.faq,
   };
+  const sp = SERVICE_PAGES[lp.slug];
+  if (sp) {
+    // Indexable version of the same page on the main site
+    PAGES[sp.path] = {
+      path: sp.path,
+      name: lp.eyebrow,
+      title: lp.metaTitle,
+      description: lp.metaDescription,
+      faq: lp.faq,
+      parent: { name: "Services", path: "/services" },
+    };
+  }
 }
 
 /** Every route that gets a static HTML file at build time. */

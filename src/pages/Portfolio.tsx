@@ -30,13 +30,13 @@ export default function Portfolio() {
       {/* Header */}
       <section className="bg-slate-50 pt-20 pb-16 md:pt-28 md:pb-24 border-b border-slate-200">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
-          <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-            <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
+          <motion.div initial={false} animate="visible" variants={staggerContainer}>
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
               Work we're proud of.
-            </motion.h1>
-            <motion.p variants={fadeInUp} className="text-xl text-slate-600 leading-relaxed">
+            </h1>
+            <p className="text-xl text-slate-600 leading-relaxed">
               Websites, brands and cloud platforms we've designed, built and run for clients around the world.
-            </motion.p>
+            </p>
           </motion.div>
         </div>
       </section>
