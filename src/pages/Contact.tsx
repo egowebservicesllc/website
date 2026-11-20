@@ -23,7 +23,7 @@ export default function Contact() {
 
       <section className="bg-slate-50 pt-20 pb-16 md:pt-28 md:pb-24 border-b border-slate-200">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
-          <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
+          <motion.div initial={false} animate="visible" variants={staggerContainer}>
             <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
               Let's discuss your project.
             </motion.h1>

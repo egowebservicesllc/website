@@ -60,7 +60,7 @@ export default function CloudPage({ path }: { path: string }) {
       <section className="relative overflow-hidden bg-slate-50 pt-20 pb-20 md:pt-28 md:pb-28 border-b border-slate-200">
         <div className="absolute -top-40 -right-40 w-[640px] h-[640px] rounded-full bg-blue-50/70 blur-3xl pointer-events-none" />
         <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center relative">
-          <motion.div initial="hidden" animate="visible" variants={stagger}>
+          <motion.div initial={false} animate="visible" variants={stagger}>
             <motion.span variants={fadeInUp} className="inline-block py-1.5 px-3 rounded-full bg-blue-100/50 text-blue-800 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-200">
               {page.eyebrow}
             </motion.span>

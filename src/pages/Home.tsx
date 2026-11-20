@@ -89,7 +89,7 @@ export default function Home() {
       <section className="relative overflow-hidden bg-slate-50 pt-20 pb-28 md:pt-32 md:pb-40">
         <div className="container mx-auto px-4 md:px-6 relative z-10">
           <motion.div 
-            initial="hidden"
+            initial={false}
             animate="visible"
             variants={staggerContainer}
             className="max-w-4xl mx-auto text-center"
@@ -97,12 +97,12 @@ export default function Home() {
             <motion.span variants={fadeInUp} className="inline-block py-1.5 px-3 rounded-full bg-blue-100/50 text-blue-800 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-200">
               Google Cloud Partner · Serving Clients Worldwide
             </motion.span>
-            <motion.h1 variants={fadeInUp} className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-8">
               Cloud, hosting &amp; web development built for <span className="text-primary">substance, not hype.</span>
-            </motion.h1>
-            <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
+            </h1>
+            <p className="text-xl md:text-2xl text-slate-600 mb-10 max-w-2xl mx-auto leading-relaxed">
               A Google Cloud Partner serving businesses worldwide. Senior engineers who migrate, host, and run your cloud, websites, and apps on Google Cloud, AWS, or Azure. No confusing jargon, just results.
-            </motion.p>
+            </p>
             <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="w-full sm:w-auto h-14 px-8 text-lg group rounded-full overflow-hidden relative">
                 <Link href="/contact">

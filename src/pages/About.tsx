@@ -24,16 +24,16 @@ export default function About() {
       {/* Header */}
       <section className="bg-slate-50 pt-20 pb-16 md:pt-28 md:pb-24 border-b border-slate-200">
         <div className="container mx-auto px-4 md:px-6 max-w-4xl text-center">
-          <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
+          <motion.div initial={false} animate="visible" variants={staggerContainer}>
             <motion.span variants={fadeInUp} className="inline-block py-1.5 px-3 rounded-full bg-blue-100/50 text-blue-800 text-sm font-semibold mb-6 tracking-wide uppercase border border-blue-200">
               Our Story
             </motion.span>
-            <motion.h1 variants={fadeInUp} className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 mb-6">
               Substance over hype since 2016.
-            </motion.h1>
-            <motion.p variants={fadeInUp} className="text-xl text-slate-600 leading-relaxed">
+            </h1>
+            <p className="text-xl text-slate-600 leading-relaxed">
               We started EGO Web Services with a simple premise: businesses need technology partners they can actually trust to deliver on their promises.
-            </motion.p>
+            </p>
           </motion.div>
         </div>
       </section>
