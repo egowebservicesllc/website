@@ -28,7 +28,7 @@ export function PlatformLogos({ className, label = true, only }: { className?: s
           >
             <div className="h-12 flex items-center">
               {p.logo ? (
-                <img src={p.logo} alt={p.name} className={cn("w-auto object-contain", p.h)} loading="lazy" decoding="async" />
+                <img src={p.logo} alt="" className={cn("w-auto object-contain", p.h)} loading="lazy" decoding="async" />
               ) : (
                 <span className="font-semibold text-slate-800">{p.name}</span>
               )}

@@ -498,7 +498,7 @@ export const MailerLiteContactForm: React.FC<{ defaultService?: ServiceId }> = (
               >
                 <fieldset className="mb-6 border-0 p-0 m-0">
                   <legend className="text-sm font-medium text-slate-900 mb-3">
-                    What do you need help with? <span className="text-slate-400 font-normal">(pick any)</span>
+                    What do you need help with? <span className="text-slate-500 font-normal">(pick any)</span>
                   </legend>
                   <div className="flex flex-wrap gap-2">
                     {SERVICE_OPTIONS.map((opt) => {

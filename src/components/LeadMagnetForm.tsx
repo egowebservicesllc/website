@@ -41,9 +41,9 @@ export const CHECKLIST_URL = "/downloads/cloud-migration-checklist.html";
 const field = "w-full h-12 rounded-xl border border-slate-200 bg-white px-4 text-[15px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary/40 focus:border-primary";
 const label = "block text-sm font-medium text-slate-900 mb-1.5";
 
-function Select({ name, options, required }: { name: string; options: string[]; required?: boolean }) {
+function Select({ id, name, options, required }: { id: string; name: string; options: string[]; required?: boolean }) {
   return (
-    <select name={name} required={required} defaultValue="" className={cn(field, "appearance-none")}>
+    <select id={id} name={name} required={required} defaultValue="" className={cn(field, "appearance-none")}>
       <option value="" disabled>Choose…</option>
       {options.map((o) => <option key={o} value={o}>{o}</option>)}
     </select>
@@ -121,15 +121,15 @@ export function LeadMagnetForm({ offer, compact = false, dark = false }: { offer
       {offer === "cost-review" && (
         <>
           <div>
-            <span className={label}>Which cloud?</span>
-            <Select name="cloud" required options={["AWS", "Google Cloud", "Microsoft Azure", "More than one", "Not sure"]} />
+            <label className={label} htmlFor="cr-cloud">Which cloud?</label>
+            <Select id="cr-cloud" name="cloud" required options={["AWS", "Google Cloud", "Microsoft Azure", "More than one", "Not sure"]} />
           </div>
           <div>
-            <span className={label}>Monthly cloud bill</span>
-            <Select name="spend" required options={["Under $1,000", "$1,000 – $5,000", "$5,000 – $20,000", "$20,000 – $100,000", "Over $100,000"]} />
+            <label className={label} htmlFor="cr-spend">Monthly cloud bill</label>
+            <Select id="cr-spend" name="spend" required options={["Under $1,000", "$1,000 – $5,000", "$5,000 – $20,000", "$20,000 – $100,000", "Over $100,000"]} />
           </div>
           <div className="sm:col-span-2">
-            <label className={label} htmlFor="cr-workloads">What runs there? <span className="text-slate-400 font-normal">(optional)</span></label>
+            <label className={label} htmlFor="cr-workloads">What runs there? <span className="text-slate-500 font-normal">(optional)</span></label>
             <textarea id="cr-workloads" name="workloads" rows={3} maxLength={800} placeholder="e.g. 8 VMs, a PostgreSQL database, Kubernetes for our app" className={cn(field, "h-auto py-3")} />
           </div>
         </>
@@ -142,16 +142,16 @@ export function LeadMagnetForm({ offer, compact = false, dark = false }: { offer
             <input id="wc-site" name="site" type="url" required placeholder="https://yourcompany.com" className={field} />
           </div>
           <div>
-            <span className={label}>Main goal</span>
-            <Select name="goal" required options={["More leads or sales", "A faster website", "Rank higher on Google", "Not sure, check everything"]} />
+            <label className={label} htmlFor="wc-goal">Main goal</label>
+            <Select id="wc-goal" name="goal" required options={["More leads or sales", "A faster website", "Rank higher on Google", "Not sure, check everything"]} />
           </div>
         </>
       )}
 
       {offer === "checklist" && !compact && (
         <div className="sm:col-span-2">
-          <span className={cn(label, dark && "text-white")}>Which cloud are you considering? <span className={dark ? "text-blue-100 font-normal" : "text-slate-400 font-normal"}>(optional)</span></span>
-          <Select name="cloud" options={["Google Cloud", "AWS", "Microsoft Azure", "Not decided yet"]} />
+          <label htmlFor={`${offer}-cloud`} className={cn(label, dark && "text-white")}>Which cloud are you considering? <span className={dark ? "text-blue-100 font-normal" : "text-slate-500 font-normal"}>(optional)</span></label>
+          <Select id={`${offer}-cloud`} name="cloud" options={["Google Cloud", "AWS", "Microsoft Azure", "Not decided yet"]} />
         </div>
       )}
 
