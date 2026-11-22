@@ -9,11 +9,11 @@ const DOCS = {
   guide: { build: guidePdf, filename: "EGO-Partner-Quick-Guide.pdf" },
 } as const;
 
-export function GET(request: Request) {
+export async function GET(request: Request) {
   const doc = new URL(request.url).searchParams.get("doc") as keyof typeof DOCS;
   const d = DOCS[doc];
   if (!d) return new Response("Not found", { status: 404 });
-  return new Response(d.build() as unknown as BodyInit, {
+  return new Response((await d.build()) as unknown as BodyInit, {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="${d.filename}"`,

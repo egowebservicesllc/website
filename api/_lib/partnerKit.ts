@@ -2,7 +2,7 @@
  * The partner program PDFs (commission plan & terms, and the quick guide),
  * built from src/lib/affiliates.ts so they always match the website.
  */
-import { Pdf } from "./pdf.js";
+import { Pdf, decodePng, textWidth, type PdfImage } from "./pdf.js";
 import { ENV } from "./env.js";
 import { PACKAGE_SERVICES } from "../../src/lib/packages.js";
 import {
@@ -14,14 +14,65 @@ const BLUE = "#005fc2";
 const site = () => ENV.siteUrl.replace(/^https?:\/\//, "");
 const EFFECTIVE = "November 22, 2026";
 
-function cover(pdf: Pdf, title: string, subtitle: string) {
-  pdf.rect(0, 0, pdf.W, 150, BLUE);
-  pdf.rect(pdf.M, 40, 26, 26, "#ffffff");
-  pdf.rect(pdf.M + 9, 46, 8, 14, BLUE);
-  pdf.text(pdf.M + 36, 59, "EGO Web Services", { size: 15, bold: true, color: "#ffffff" });
-  pdf.text(pdf.M, 104, title, { size: 22, bold: true, color: "#ffffff" });
-  pdf.text(pdf.M, 126, subtitle, { size: 11, color: "#dbeafe" });
-  pdf.y = 172;
+/** Logo files from the website (cached per function instance); null if unavailable. */
+const logos = new Map<string, Promise<PdfImage | null>>();
+function loadLogo(path: string) {
+  if (!logos.has(path)) {
+    logos.set(
+      path,
+      fetch(`${ENV.siteUrl}${path}`)
+        .then(async (r) => (r.ok ? decodePng(Buffer.from(await r.arrayBuffer())) : null))
+        .catch(() => null),
+    );
+  }
+  return logos.get(path)!;
+}
+
+/** Blue cover band with the white logo, and a running header with the colour logo on later pages. */
+async function brand(pdf: Pdf, eyebrow: string, title: string, subtitle: string, docName: string) {
+  const [white, colour] = await Promise.all([loadLogo("/brand/ego-logo-horizontal-white.png"), loadLogo("/email/ego-logo.png")]);
+  const colourIdx = colour ? pdf.addImage(colour) : -1;
+
+  pdf.rect(0, 0, pdf.W, 214, BLUE);
+  pdf.rect(0, 0, pdf.W, 6, "#0b1f3a");
+  pdf.rect(0, 214, pdf.W, 4, "#60a5fa");
+  // Decorative blocks on the right of the band.
+  pdf.rect(pdf.W - 120, 6, 120, 208, "#0a6ad6");
+  pdf.rect(pdf.W - 60, 6, 60, 208, "#1877e0");
+  const whiteIdx = white ? pdf.addImage(white) : -1;
+  if (whiteIdx >= 0) pdf.drawImage(whiteIdx, pdf.M, 38, 150);
+  else {
+    pdf.rect(pdf.M, 40, 26, 26, "#ffffff");
+    pdf.rect(pdf.M + 9, 46, 8, 14, BLUE);
+    pdf.text(pdf.M + 36, 59, "EGO Web Services", { size: 15, bold: true, color: "#ffffff" });
+  }
+  pdf.text(pdf.M, 122, eyebrow.toUpperCase(), { size: 9, bold: true, color: "#bfdbfe" });
+  pdf.text(pdf.M, 152, title, { size: 24, bold: true, color: "#ffffff" });
+  pdf.text(pdf.M, 180, subtitle, { size: 11, color: "#dbeafe" });
+  pdf.y = 244;
+
+  pdf.header = (p) => {
+    if (colourIdx >= 0) p.drawImage(colourIdx, p.M, 22, 86);
+    else p.text(p.M, 40, "EGO Web Services", { size: 11, bold: true, color: BLUE });
+    p.text(p.W - p.M - textWidth(docName, 8.5), 40, docName, { size: 8.5, color: "#64748b" });
+    p.line(p.M, 56, p.W - p.M, 56, "#cbd5e1", 0.6);
+    p.y = 70;
+  };
+  return whiteIdx;
+}
+
+/** Closing panel: white logo on blue, with how to reach the partner team. */
+function closing(pdf: Pdf, whiteIdx: number, title: string, lines: string[]) {
+  const h = 58 + lines.length * 15;
+  pdf.ensure(h + 16);
+  pdf.y += 8;
+  pdf.rect(pdf.M, pdf.y, pdf.contentWidth, h, BLUE);
+  pdf.rect(pdf.M + pdf.contentWidth - 70, pdf.y, 70, h, "#0a6ad6");
+  if (whiteIdx >= 0) pdf.drawImage(whiteIdx, pdf.M + 20, pdf.y + 18, 96);
+  const x = pdf.M + 140;
+  pdf.text(x, pdf.y + 30, title, { size: 13, bold: true, color: "#ffffff" });
+  lines.forEach((l, i) => pdf.text(x, pdf.y + 50 + i * 15, l, { size: 10, color: "#dbeafe" }));
+  pdf.y += h + 10;
 }
 
 function stats(pdf: Pdf, items: [string, string][]) {
@@ -40,10 +91,10 @@ const rateLabel = (rate: number, recurring: boolean, months?: number) => (recurr
 
 /* ---------------- Commission plan & program terms ---------------- */
 
-export function planPdf(): Uint8Array {
+export async function planPdf(): Promise<Uint8Array> {
   const pdf = new Pdf();
   pdf.footer = `EGO Partner Program · Commission plan & terms · effective ${EFFECTIVE} · ${ENV.affiliatesReplyTo}`;
-  cover(pdf, "Partner Program: Commission Plan & Terms", `Effective ${EFFECTIVE} · ${site()}/affiliates`);
+  const logo = await brand(pdf, "EGO Partner Program", "Commission Plan & Program Terms", `Effective ${EFFECTIVE} · ${site()}/affiliates`, "Commission plan & program terms");
 
   const top = Math.max(...COMMISSIONS.map((c) => c.rate)) + LEVELS[LEVELS.length - 1].bonus;
   stats(pdf, [
@@ -134,16 +185,16 @@ export function planPdf(): Uint8Array {
     "By applying to the program you accept these terms.",
   ]);
 
-  pdf.callout("Questions?", `Email ${ENV.affiliatesReplyTo} or reply to your welcome email. Your dashboard: ${site()}/affiliates/dashboard`);
+  closing(pdf, logo, "Questions? We're here to help.", [`Email ${ENV.affiliatesReplyTo} or reply to your welcome email.`, `Your dashboard: ${site()}/affiliates/dashboard`, "Google Cloud Partner · Building for clients since 2016"]);
   return pdf.build("EGO Partner Program: Commission Plan & Terms");
 }
 
 /* ---------------- Quick guide ---------------- */
 
-export function guidePdf(): Uint8Array {
+export async function guidePdf(): Promise<Uint8Array> {
   const pdf = new Pdf();
   pdf.footer = `EGO Partner Program · Quick guide · ${ENV.affiliatesReplyTo}`;
-  cover(pdf, "Partner Quick Guide", "Everything you need to start referring clients, in 5 minutes");
+  const logo = await brand(pdf, "EGO Partner Program", "Partner Quick Guide", "Everything you need to start referring clients, in 5 minutes", "Partner quick guide");
 
   pdf.eyebrow("Start here");
   pdf.heading("Your first 5 minutes");
@@ -226,6 +277,6 @@ export function guidePdf(): Uint8Array {
     "Don't spam groups, inboxes or comment sections, and don't run ads on our brand name.",
     "Don't promise prices or discounts; we'll give the client a fixed quote within one business day.",
   ]);
-  pdf.callout("Need help or custom material?", `Reply to your welcome email or write to ${ENV.affiliatesReplyTo}. Pro and Elite partners can ask for co-branded proposals.`);
+  closing(pdf, logo, "Need help or custom material?", [`Reply to your welcome email or write to ${ENV.affiliatesReplyTo}.`, "Pro and Elite partners can ask for co-branded proposals.", `${site()}/affiliates/dashboard`]);
   return pdf.build("EGO Partner Quick Guide");
 }
