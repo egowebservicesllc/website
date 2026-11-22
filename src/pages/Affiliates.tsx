@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, BadgeDollarSign, CheckCircle2, Link2, Loader2, Repeat, Send, ShieldCheck, Users, Wallet } from "lucide-react";
+import { ArrowRight, BadgeDollarSign, CheckCircle2, Download, Link2, Loader2, Repeat, Send, ShieldCheck, Users, Wallet } from "lucide-react";
 import { Seo } from "@/components/Seo";
 import { Layout } from "@/components/layout/Layout";
 import { BUSINESS } from "@/lib/site";
@@ -75,6 +75,7 @@ function Calculator() {
 
 function ApplyForm() {
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  const [code, setCode] = useState("");
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
@@ -97,6 +98,8 @@ function ApplyForm() {
         }),
       });
       if (!r.ok) throw new Error(String(r.status));
+      const data = await r.json().catch(() => ({}));
+      if (typeof data.code === "string") setCode(data.code);
       track("affiliate_application", {});
       setState("done");
     } catch {
@@ -108,7 +111,12 @@ function ApplyForm() {
     return (
       <div className="rounded-3xl bg-green-50 border border-green-200 p-8 text-center" role="status">
         <CheckCircle2 className="w-12 h-12 mx-auto mb-4 text-green-600" />
-        <p className="text-lg font-semibold text-slate-900">Thanks for applying! We review applications within {BUSINESS.responseTime} and will email you your partner links and dashboard login.</p>
+        <p className="text-xl font-bold text-slate-900">Welcome to the EGO Partner Program!</p>
+        {code && (
+          <p className="mt-4 text-slate-700">Your referral code: <span className="font-mono font-bold text-slate-900 bg-white border border-green-200 rounded-lg px-2 py-1">{code}</span></p>
+        )}
+        <p className="mt-4 text-slate-700">We've emailed your welcome pack from affiliates@egowebservices.com: your links, a one-click sign-in to your dashboard, the commission plan and the quick guide. Check your spam folder if it isn't there in a few minutes.</p>
+        <Link href="/affiliates/dashboard" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary text-white font-semibold px-6 h-12 hover:bg-primary/90">Go to the partner dashboard <ArrowRight className="w-4 h-4" /></Link>
       </div>
     );
   }
@@ -158,7 +166,7 @@ function ApplyForm() {
           {state === "sending" ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send className="w-5 h-5" />} Apply to become a partner
         </button>
         {state === "error" && <p className="mt-3 text-sm text-red-600" role="alert">Something went wrong. Please email us at <a className="underline" href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.</p>}
-        <p className="mt-3 text-xs text-slate-500">Free to join. By applying you agree to the program rules on this page.</p>
+        <p className="mt-3 text-xs text-slate-500">Free to join and approved instantly. By applying you agree to the <a href="/api/partner-kit?doc=plan" target="_blank" rel="noopener" className="underline">program terms</a>.</p>
       </div>
     </form>
   );
@@ -209,7 +217,7 @@ export default function Affiliates() {
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-10 text-center">How it works</h2>
           <ol className="grid md:grid-cols-4 gap-6">
             {[
-              { t: "Apply", d: "Tell us how you'd promote us. We reply within one business day." },
+              { t: "Apply", d: "Tell us how you'd promote us. You're approved instantly and get your welcome pack by email." },
               { t: "Share your links", d: "Get links for any page on our site from your partner dashboard." },
               { t: "We do the selling", d: "Our team quotes, delivers and supports the client. You stay in the loop." },
               { t: "Get paid", d: "Commission is approved once the client pays, then paid out monthly." },
@@ -306,7 +314,10 @@ export default function Affiliates() {
                 <li key={r} className="flex gap-3 text-slate-700"><CheckCircle2 className="w-5 h-5 text-primary shrink-0 mt-0.5" />{r}</li>
               ))}
             </ul>
-            <p className="mt-6 text-slate-600">Already a partner? <Link href="/affiliates/dashboard" className="text-primary font-semibold underline">Open your dashboard</Link></p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <a href="/api/partner-kit?doc=plan" target="_blank" rel="noopener" className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-5 h-11 font-semibold text-slate-900 hover:bg-slate-50"><Download className="w-4 h-4" /> Commission plan & terms (PDF)</a>
+              <Link href="/affiliates/dashboard" className="inline-flex items-center gap-2 rounded-full px-5 h-11 font-semibold text-primary hover:bg-blue-50">Partner sign in <ArrowRight className="w-4 h-4" /></Link>
+            </div>
           </div>
         </div>
       </section>
@@ -316,7 +327,7 @@ export default function Affiliates() {
         <div className="container mx-auto px-4 md:px-6 max-w-3xl">
           <div className="text-center mb-10">
             <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Apply to the partner program</h2>
-            <p className="text-lg text-slate-600">Free to join. Once approved, you'll get your referral links and dashboard login by email.</p>
+            <p className="text-lg text-slate-600">Free to join and approved instantly. Your referral links, dashboard sign-in and partner kit arrive by email straight away.</p>
           </div>
           <div className="rounded-3xl bg-white border border-slate-200 shadow-xl shadow-slate-900/5 p-6 md:p-8">
             <ApplyForm />

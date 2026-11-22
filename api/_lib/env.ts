@@ -36,6 +36,9 @@ export const ENV = {
   emailFromNotifications: e("EMAIL_FROM_NOTIFICATIONS", "EGO Web Services <notifications@egowebservices.com>"),
   // Service-specific "next steps" auto-reply to every lead and Buy-now order
   emailFromInfo: e("EMAIL_FROM_INFO", "EGO Web Services <info@egowebservices.com>"),
+  // Partner program emails (welcome pack, sign-in links); replies go to affiliates@
+  emailFromAffiliates: e("EMAIL_FROM_AFFILIATES", "EGO Partner Program <affiliates@egowebservices.com>"),
+  affiliatesReplyTo: e("AFFILIATES_REPLY_TO", "affiliates@egowebservices.com"),
   // Team copy of every lead and order (full details + AI draft). INTERNAL_NOTIFY_EMAIL is the old name.
   teamNotifyEmail: e("TEAM_NOTIFY_EMAIL", e("INTERNAL_NOTIFY_EMAIL", "info@egowebservices.com")),
   signatureName: e("SIGNATURE_NAME", "The EGO Web Services team"),

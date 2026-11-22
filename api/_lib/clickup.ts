@@ -56,6 +56,8 @@ export async function createLeadTask(
       tags: [
         ...(extras.tags || ["website-lead"]),
         clientTag(lead.email),
+        // Referred by a partner (?ref=code): lets the partner dashboard find this lead.
+        ...(partnerFromSource(lead.source) && !(extras.tags || []).includes("affiliate-partner") ? [`partner-${partnerFromSource(lead.source)}`] : []),
         ...lead.services.map((s) => s.toLowerCase().replace(/[^a-z0-9]+/g, "-")).slice(0, 4),
       ],
       priority: PRIORITY[timelineKey] ?? 3,
@@ -100,6 +102,25 @@ export interface CuTask {
   text_content?: string;
   markdown_description?: string;
   attachments?: { id: string; title?: string; url?: string; date?: string; size?: number; extension?: string }[];
+}
+
+/** Partner referral code carried in a lead's source line ("partner=sarah-7f3a"). */
+export function partnerFromSource(source?: string) {
+  return (source || "").match(/partner=([a-z0-9][a-z0-9-]{1,31})/)?.[1];
+}
+
+/** All tasks carrying a tag (open and closed), oldest first. */
+export async function listTasksByTag(tag: string): Promise<CuTask[]> {
+  if (!has.clickup()) return [];
+  const out: CuTask[] = [];
+  for (let page = 0; page < 5; page++) {
+    const q = new URLSearchParams({ include_closed: "true", subtasks: "false", order_by: "created", reverse: "true", include_markdown_description: "true", page: String(page) });
+    q.append("tags[]", tag);
+    const res = await cu(`/list/${ENV.clickupListId}/task?${q}`);
+    out.push(...((res.tasks || []) as CuTask[]));
+    if (res.last_page !== false || !(res.tasks || []).length) break;
+  }
+  return out;
 }
 
 /** All tasks for a client (open and closed), newest first. */

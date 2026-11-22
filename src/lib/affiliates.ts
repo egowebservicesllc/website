@@ -1,9 +1,10 @@
 /**
  * Affiliate program: the single place to change commission rates, partner
  * levels and rules. The /affiliates page, the earnings calculator and the
- * partner dashboard all read from here.
+ * partner dashboard all read from here. No React or "@/" imports: the /api
+ * functions use it too.
  */
-import { PACKAGE_SERVICES as SERVICES } from "./packages";
+import { PACKAGE_SERVICES as SERVICES } from "./packages.js";
 
 export const REF_PARAM = "ref";
 export const COOKIE_DAYS = 90;
@@ -111,4 +112,52 @@ export const RULES = [
   `Commission is capped at ${money(MAX_COMMISSION_PER_CLIENT)} per referred client.`,
   "No self-referrals, spam, fake reviews or misleading claims about our services.",
   "Don't bid on \"EGO Web Services\" or our brand name in search ads.",
+];
+
+export const ruleFor = (serviceId?: string | null) => COMMISSIONS.find((c) => c.serviceId === serviceId);
+
+/** Referral statuses shown to partners. */
+export type ReferralStatus = "Lead" | "Quoted" | "Paid" | "Approved" | "Paid out" | "Lost";
+
+export interface Referral {
+  id: string;
+  date: string;
+  client: string;
+  service: string;
+  pkg: string;
+  /** Deal value in dollars (monthly for recurring services); null when not priced yet. */
+  value: number | null;
+  recurring: boolean;
+  /** Commission in dollars; null until the deal has a price. */
+  commission: number | null;
+  status: ReferralStatus;
+}
+
+export interface PartnerStats {
+  leads: number;
+  paidClients: number;
+  level: Level["id"];
+  pending: number;
+  approved: number;
+  paidOut: number;
+  potential: number;
+}
+
+/** Partner toolkit: PDFs, banners (SVG, turned into PNG in the browser) and videos. */
+export const PARTNER_DOCS = [
+  { href: "/api/partner-kit?doc=plan", label: "Commission plan & program terms", note: "Rates, levels, payouts and all conditions" },
+  { href: "/api/partner-kit?doc=guide", label: "Partner quick guide", note: "How to use your links, banners, videos and posts" },
+];
+
+export const BANNERS = [
+  { file: "/partners/banner-1200x628.svg", w: 1200, h: 628, label: "Social post", use: "LinkedIn, Facebook, X, blog headers" },
+  { file: "/partners/banner-1080x1080.svg", w: 1080, h: 1080, label: "Square post", use: "Instagram and LinkedIn feed" },
+  { file: "/partners/banner-1080x1920.svg", w: 1080, h: 1920, label: "Story", use: "Instagram, Facebook and WhatsApp stories" },
+  { file: "/partners/banner-728x90.svg", w: 728, h: 90, label: "Leaderboard", use: "Website headers and footers" },
+  { file: "/partners/banner-300x250.svg", w: 300, h: 250, label: "Medium rectangle", use: "Website sidebars and newsletters" },
+];
+
+export const VIDEOS = [
+  { file: "/videos/ego-promo-16x9.mp4", poster: "/videos/ego-promo-16x9-poster.jpg", label: "Company promo", path: "/" },
+  { file: "/videos/ego-google-cloud-16x9.mp4", poster: "/videos/ego-google-cloud-16x9-poster.jpg", label: "Google Cloud promo", path: "/google-cloud" },
 ];

@@ -9,7 +9,7 @@ import { taskTitle, type CuTask } from "./clickup.js";
 const COOKIE = "ego_portal";
 const b64 = (s: string | Buffer) => Buffer.from(s).toString("base64url");
 
-interface TokenBody { e: string; typ: "login" | "session"; exp: number }
+interface TokenBody { e: string; typ: "login" | "session" | "plogin" | "psession"; exp: number }
 
 export function signToken(email: string, typ: TokenBody["typ"], ttlSec: number) {
   const body = b64(JSON.stringify({ e: email.toLowerCase(), typ, exp: Math.floor(Date.now() / 1000) + ttlSec }));
