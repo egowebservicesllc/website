@@ -34,6 +34,8 @@ export interface SendOptions {
   from?: string; // defaults to EMAIL_FROM (human replies); automatic emails pass ENV.emailFromNotifications
   replyTo?: string; // defaults to EMAIL_REPLY_TO
   bcc?: string;
+  /** Files Resend fetches from a public URL and attaches. */
+  attachments?: { filename: string; path: string }[];
 }
 
 export async function sendEmail(to: string, subject: string, html: string, text: string, opts: SendOptions | string = {}) {
@@ -53,6 +55,7 @@ export async function sendEmail(to: string, subject: string, html: string, text:
       html,
       text,
       ...(o.bcc ? { bcc: [o.bcc] } : {}),
+      ...(o.attachments?.length ? { attachments: o.attachments } : {}),
     }),
   });
   if (!res.ok) {
@@ -70,6 +73,10 @@ export const sendNotification = (to: string, subject: string, html: string, text
 /** Service "next steps" auto-reply, sent from info@ (replies come back to info@). */
 export const sendFromInfo = (to: string, subject: string, html: string, text: string) =>
   sendEmail(to, subject, html, text, { from: ENV.emailFromInfo, replyTo: "info@egowebservices.com" });
+
+/** Partner program email, sent from affiliates@ (replies come back to affiliates@). */
+export const sendFromAffiliates = (to: string, subject: string, html: string, text: string, attachments?: SendOptions["attachments"]) =>
+  sendEmail(to, subject, html, text, { from: ENV.emailFromAffiliates, replyTo: ENV.affiliatesReplyTo, attachments });
 
 /** Copy for the team inbox (info@). Reply-To is the client, so "Reply" in your mail app answers them. */
 export async function sendTeamCopy(subject: string, html: string, text: string, clientEmail?: string) {
