@@ -26,6 +26,9 @@ import { autoBlocks, draftBlocks, postMessage } from "./_lib/slack.js";
 import { findPackage, serviceByLabel } from "../src/lib/packages.js";
 import { detectService } from "../src/lib/detectService.js";
 import type { Lead } from "./_lib/types.js";
+import { sendFromAffiliates } from "./_lib/email.js";
+import { APPLICATION_PACKAGE, PARTNER_TAG, codeTag, findPartner, makePartnerCode, partnerLoginToken } from "./_lib/affiliate.js";
+import { PARTNER_PDFS, partnerWelcomeEmail } from "./_lib/partnerEmails.js";
 
 const hits = new Map<string, number[]>();
 function rateLimited(key: string, max: number, windowMs: number) {
@@ -107,6 +110,9 @@ export async function POST(request: Request) {
     receivedAt: new Date().toISOString(),
   };
   log("lead_received", { ref: lead.ref, services, package: lead.packageName, ...(detected ? { detectedFrom: detected } : {}) });
+
+  // Partner program application: approved straight away, welcome pack from affiliates@.
+  if (lead.packageName === APPLICATION_PACKAGE) return partnerApplication(lead);
 
   // Fixed-price package?
   const { service, pkg } = findPackage(serviceId, lead.packageName);
@@ -231,6 +237,70 @@ async function notify(o: {
         ? "Fixed-price package, but Stripe isn't connected, so no payment link was created. Send a price from Slack (Edit, add price & send)."
         : "Confirmation and next-steps email sent to the client. Reply draft below is waiting for a human to review and send.",
     draft,
+  });
+  await sendTeamCopy(copy.subject, copy.html, copy.text, lead.email);
+}
+
+/* ---------------- Partner program applications ---------------- */
+
+async function partnerApplication(lead: Lead) {
+  const existing = await findPartner(lead.email).catch(() => null);
+  const code = existing?.code || makePartnerCode(lead.name, lead.email);
+  let task: { id: string; url: string } | null = existing ? { id: existing.task.id, url: taskUrl(existing.task.id) || "" } : null;
+  if (!existing) {
+    try {
+      task = await createLeadTask(lead, { tags: [PARTNER_TAG, codeTag(code)], title: "Partner application" });
+    } catch (err) {
+      log("clickup_failed", { ref: lead.ref, error: String(err) });
+    }
+  }
+  log("partner_application", { ref: lead.ref, code, returning: Boolean(existing) });
+  waitUntil(notifyPartner(lead, code, task, Boolean(existing)).catch((err) => log("partner_notify_failed", { ref: lead.ref, error: String(err) })));
+  return json(200, { ok: true, ref: lead.ref, code });
+}
+
+async function notifyPartner(lead: Lead, code: string, task: { id: string; url: string } | null, returning: boolean) {
+  // 1. Welcome pack to the partner (affiliates@), with the commission plan and quick guide PDFs.
+  const dashboardUrl = has.portal()
+    ? `${ENV.siteUrl}/affiliates/dashboard?token=${encodeURIComponent(partnerLoginToken(lead.email, 14 * 86400))}`
+    : `${ENV.siteUrl}/affiliates/dashboard`;
+  const mail = partnerWelcomeEmail({ name: lead.name, code, dashboardUrl });
+  const sent = await sendFromAffiliates(lead.email, mail.subject, mail.html, mail.text, PARTNER_PDFS()).catch(() => false);
+  if (sent) await commentOnTask(task?.id, `🤝 Partner welcome pack sent from affiliates@ (code ${code}, PDFs attached).${returning ? " They applied again, so we re-sent it." : ""}`);
+
+  // 2. Slack
+  if (has.slack()) {
+    try {
+      const url = taskUrl(task?.id);
+      await postMessage(
+        [
+          { type: "section", text: { type: "mrkdwn", text: `🤝 *New partner${returning ? " (applied again)" : ""}:* ${lead.name}${lead.company ? ` (${lead.company})` : ""} · ${lead.email}\nReferral code: \`${code}\` · approved automatically, welcome pack sent from affiliates@.\n\n${lead.message.slice(0, 1500)}` } },
+          ...(url ? [{ type: "actions", elements: [{ type: "button", text: { type: "plain_text", text: "Open in ClickUp" }, action_id: "open_clickup", url }] }] : []),
+        ],
+        `New partner: ${lead.name} (${code})`,
+      );
+    } catch (err) {
+      log("slack_failed", { ref: lead.ref, error: String(err) });
+    }
+  }
+
+  // 3. Team inbox copy
+  const copy = teamCopyEmail({
+    kind: "lead",
+    ref: lead.ref,
+    title: "Partner program application",
+    clientName: lead.name,
+    clientEmail: lead.email,
+    rows: [
+      ["Name", lead.name],
+      ["Email", lead.email],
+      ["Company", lead.company],
+      ["Referral code", code],
+      ["Source", lead.source],
+    ],
+    message: lead.message,
+    taskId: task?.id,
+    status: `Approved automatically. Welcome pack ${sent ? "sent" : "NOT sent (email provider error)"} from affiliates@ with the commission plan and quick guide PDFs. To pay commission, tag a referred client's task "commission-approved" or "commission-paid" in ClickUp.`,
   });
   await sendTeamCopy(copy.subject, copy.html, copy.text, lead.email);
 }
