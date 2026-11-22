@@ -143,18 +143,18 @@ export interface PartnerStats {
   potential: number;
 }
 
-/** Partner toolkit: PDFs, banners (SVG, turned into PNG in the browser) and videos. */
+/** Partner toolkit: PDFs, banners (served with the logo by /api/banner, turned into PNG in the browser) and videos. */
 export const PARTNER_DOCS = [
   { href: "/api/partner-kit?doc=plan", label: "Commission plan & program terms", note: "Rates, levels, payouts and all conditions" },
   { href: "/api/partner-kit?doc=guide", label: "Partner quick guide", note: "How to use your links, banners, videos and posts" },
 ];
 
 export const BANNERS = [
-  { file: "/partners/banner-1200x628.svg", w: 1200, h: 628, label: "Social post", use: "LinkedIn, Facebook, X, blog headers" },
-  { file: "/partners/banner-1080x1080.svg", w: 1080, h: 1080, label: "Square post", use: "Instagram and LinkedIn feed" },
-  { file: "/partners/banner-1080x1920.svg", w: 1080, h: 1920, label: "Story", use: "Instagram, Facebook and WhatsApp stories" },
-  { file: "/partners/banner-728x90.svg", w: 728, h: 90, label: "Leaderboard", use: "Website headers and footers" },
-  { file: "/partners/banner-300x250.svg", w: 300, h: 250, label: "Medium rectangle", use: "Website sidebars and newsletters" },
+  { file: "/api/banner?file=banner-1200x628", w: 1200, h: 628, label: "Social post", use: "LinkedIn, Facebook, X, blog headers" },
+  { file: "/api/banner?file=banner-1080x1080", w: 1080, h: 1080, label: "Square post", use: "Instagram and LinkedIn feed" },
+  { file: "/api/banner?file=banner-1080x1920", w: 1080, h: 1920, label: "Story", use: "Instagram, Facebook and WhatsApp stories" },
+  { file: "/api/banner?file=banner-728x90", w: 728, h: 90, label: "Leaderboard", use: "Website headers and footers" },
+  { file: "/api/banner?file=banner-300x250", w: 300, h: 250, label: "Medium rectangle", use: "Website sidebars and newsletters" },
 ];
 
 export const VIDEOS = [
