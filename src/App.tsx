@@ -15,6 +15,8 @@ import LandingPage, { ServicePage } from '@/pages/LandingPage';
 import ThankYou from '@/pages/ThankYou';
 import Checkout from '@/pages/Checkout';
 import Portal from '@/pages/Portal';
+import Affiliates from '@/pages/Affiliates';
+import AffiliateDashboard from '@/pages/AffiliateDashboard';
 import { Privacy, Terms } from '@/pages/Legal';
 import { BlogIndex, BlogPostPage } from '@/pages/Blog';
 import { SolutionsIndex, SolutionPage } from '@/pages/Solutions';
@@ -44,6 +46,8 @@ function Router() {
       <Route path="/thank-you" component={ThankYou} />
       <Route path="/checkout" component={Checkout} />
       <Route path="/portal" component={Portal} />
+      <Route path="/affiliates" component={Affiliates} />
+      <Route path="/affiliates/dashboard" component={AffiliateDashboard} />
       <Route path="/privacy" component={Privacy} />
       <Route path="/terms" component={Terms} />
       <Route path="/blog" component={BlogIndex} />
