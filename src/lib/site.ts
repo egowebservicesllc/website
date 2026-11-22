@@ -347,6 +347,20 @@ PAGES["/cloud-migration-checklist"] = {
   description: "A practical 40-point checklist for moving to Google Cloud, AWS or Azure: planning, security, data, cut-over and costs. Free and printable.",
 };
 
+PAGES["/affiliates"] = {
+  path: "/affiliates",
+  name: "Partner program",
+  title: "Partner Program: Earn Up to 35% Commission",
+  description: "Refer clients to EGO Web Services and earn commission on cloud, hosting, web, app, branding and marketing projects, including recurring commission. Free to join.",
+};
+PAGES["/affiliates/dashboard"] = {
+  path: "/affiliates/dashboard",
+  name: "Partner dashboard",
+  title: "Partner Dashboard",
+  description: "Your EGO partner dashboard: referral links, referrals, commission and payouts.",
+  noindex: true,
+};
+
 export const PRERENDER_ROUTES = Object.keys(PAGES);
 
 export const INDEXABLE_ROUTES = Object.values(PAGES)

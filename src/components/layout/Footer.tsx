@@ -143,6 +143,7 @@ export function Footer() {
                 { title: "Pricing", path: "/pricing" },
                 { title: "Support", path: "/support" },
                 { title: "Client portal", path: "/portal" },
+                { title: "Partner program", path: "/affiliates" },
                 { title: "Contact", path: "/contact" },
               ].map((item, i) => (
                 <li key={i}>

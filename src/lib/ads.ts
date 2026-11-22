@@ -42,9 +42,37 @@ function safeStorage(): Storage | null {
   }
 }
 
+/* ---------------- Partner referrals (?ref=code) ---------------- */
+
+const REF_KEY = 'ego_ref';
+const REF_DAYS = 90;
+
+/** Remembers a partner's referral code for 90 days. The first partner link a visitor used wins. */
+function captureReferral(params: URLSearchParams) {
+  const code = (params.get('ref') || '').toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{1,31}$/.test(code)) return;
+  const store = safeStorage();
+  if (!store) return;
+  if (getReferral()) return;
+  store.setItem(REF_KEY, JSON.stringify({ code, t: Date.now() }));
+}
+
+export function getReferral(): string {
+  try {
+    const raw = safeStorage()?.getItem(REF_KEY);
+    if (!raw) return '';
+    const { code, t } = JSON.parse(raw);
+    if (Date.now() - t > REF_DAYS * 24 * 3600 * 1000) return '';
+    return typeof code === 'string' ? code : '';
+  } catch {
+    return '';
+  }
+}
+
 /** Saves the ad click details on arrival (last paid click wins, kept 30 days). */
 export function captureAttribution() {
   const params = new URLSearchParams(window.location.search);
+  captureReferral(params);
   const found: Attribution = {};
   for (const k of ATTR_PARAMS) {
     const v = params.get(k);
@@ -88,6 +116,7 @@ export function attributionSummary(): string {
     clickId && `click=${clickId}`,
     !a.utm_source && a.referrer && `referrer=${a.referrer}`,
     a.landing_page && `landing=${a.landing_page}`,
+    getReferral() && `partner=${getReferral()}`,
   ].filter(Boolean);
   return parts.length ? `[Source: ${parts.join(', ')}]` : '';
 }
