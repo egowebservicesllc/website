@@ -1,8 +1,61 @@
 /**
  * Tiny dependency-free PDF writer: A4 pages, Helvetica / Helvetica-Bold,
- * wrapped paragraphs, bullets, tables and coloured boxes. Enough for the
- * partner program documents, which are built from the live program settings.
+ * wrapped paragraphs, bullets, tables, coloured boxes and PNG images (the
+ * logo). Enough for the partner program documents, which are built from the
+ * live program settings.
  */
+import zlib from "node:zlib";
+
+/** A decoded PNG, ready to embed: deflated RGB pixels plus a deflated alpha mask. */
+export interface PdfImage { w: number; h: number; rgb: Buffer; alpha?: Buffer }
+
+/** Decodes an 8-bit, non-interlaced RGB or RGBA PNG (what our logo files are). */
+export function decodePng(buf: Buffer): PdfImage {
+  if (buf.readUInt32BE(0) !== 0x89504e47) throw new Error("not a PNG");
+  let pos = 8, w = 0, h = 0, depth = 0, type = 0, interlace = 0;
+  const idat: Buffer[] = [];
+  while (pos < buf.length) {
+    const len = buf.readUInt32BE(pos);
+    const kind = buf.toString("latin1", pos + 4, pos + 8);
+    const data = buf.subarray(pos + 8, pos + 8 + len);
+    if (kind === "IHDR") {
+      w = data.readUInt32BE(0); h = data.readUInt32BE(4); depth = data[8]; type = data[9]; interlace = data[12];
+    } else if (kind === "IDAT") idat.push(data);
+    else if (kind === "IEND") break;
+    pos += 12 + len;
+  }
+  if (depth !== 8 || interlace || (type !== 2 && type !== 6)) throw new Error("unsupported PNG");
+  const ch = type === 6 ? 4 : 3;
+  const raw = zlib.inflateSync(Buffer.concat(idat));
+  const stride = w * ch;
+  const px = Buffer.alloc(stride * h);
+  for (let y = 0; y < h; y++) {
+    const f = raw[y * (stride + 1)];
+    const row = raw.subarray(y * (stride + 1) + 1, (y + 1) * (stride + 1));
+    for (let x = 0; x < stride; x++) {
+      const a = x >= ch ? px[y * stride + x - ch] : 0;
+      const b = y ? px[(y - 1) * stride + x] : 0;
+      const c = y && x >= ch ? px[(y - 1) * stride + x - ch] : 0;
+      let v = row[x];
+      if (f === 1) v += a;
+      else if (f === 2) v += b;
+      else if (f === 3) v += (a + b) >> 1;
+      else if (f === 4) {
+        const p = a + b - c, pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+        v += pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+      }
+      px[y * stride + x] = v & 255;
+    }
+  }
+  if (ch === 3) return { w, h, rgb: zlib.deflateSync(px) };
+  const rgb = Buffer.alloc(w * h * 3);
+  const alpha = Buffer.alloc(w * h);
+  for (let i = 0; i < w * h; i++) {
+    rgb[i * 3] = px[i * 4]; rgb[i * 3 + 1] = px[i * 4 + 1]; rgb[i * 3 + 2] = px[i * 4 + 2];
+    alpha[i] = px[i * 4 + 3];
+  }
+  return { w, h, rgb: zlib.deflateSync(rgb), alpha: zlib.deflateSync(alpha) };
+}
 
 type RGB = [number, number, number];
 export const hex = (h: string): RGB => [parseInt(h.slice(1, 3), 16) / 255, parseInt(h.slice(3, 5), 16) / 255, parseInt(h.slice(5, 7), 16) / 255];
@@ -56,8 +109,11 @@ export class Pdf {
   readonly M = 54; // margin
   private pages: string[][] = [];
   private cur: string[] = [];
+  private images: PdfImage[] = [];
   y = 0; // distance from the top of the page
   footer = "";
+  /** Drawn at the top of every page after the first (running header). */
+  header?: (pdf: Pdf) => void;
 
   constructor() {
     this.newPage();
@@ -71,6 +127,21 @@ export class Pdf {
     this.cur = [];
     this.pages.push(this.cur);
     this.y = this.M;
+    if (this.pages.length > 1 && this.header) this.header(this);
+  }
+
+  /** Registers an image; returns its index for drawImage. */
+  addImage(img: PdfImage) {
+    this.images.push(img);
+    return this.images.length - 1;
+  }
+
+  /** Draws an image with its top-left corner at (x, y from top), `w` wide (height keeps the ratio). Returns the height. */
+  drawImage(index: number, x: number, y: number, w: number) {
+    const img = this.images[index];
+    const h = (w * img.h) / img.w;
+    this.cur.push(`q ${f(w)} 0 0 ${f(h)} ${f(x)} ${f(this.H - y - h)} cm /Im${index} Do Q`);
+    return h;
   }
 
   /** Start a new page if fewer than `h` points are left. */
@@ -210,14 +281,27 @@ export class Pdf {
     const add = (s: string) => objs.push(s) ;
     add("<< /Type /Catalog /Pages 2 0 R >>");
     const pageIds = this.pages.map((_, i) => 6 + i * 2);
+    // Image objects follow the pages: an image, then its alpha mask if it has one.
+    let next = 6 + n * 2;
+    const imageIds = this.images.map((img) => {
+      const id = next;
+      next += img.alpha ? 2 : 1;
+      return id;
+    });
+    const xobjects = this.images.length ? ` /XObject << ${imageIds.map((id, i) => `/Im${i} ${id} 0 R`).join(" ")} >>` : "";
     add(`<< /Type /Pages /Kids [${pageIds.map((id) => `${id} 0 R`).join(" ")}] /Count ${n} >>`);
     add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>");
     add("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold /Encoding /WinAnsiEncoding >>");
     add(`<< /Title ${pdfStr(title)} /Author (EGO Web Services LLC) /Creator (egowebservices.com) >>`);
     this.pages.forEach((p, i) => {
       const stream = p.join("\n");
-      add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${f(this.W)} ${f(this.H)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >> >> /Contents ${pageIds[i] + 1} 0 R >>`);
+      add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${f(this.W)} ${f(this.H)}] /Resources << /Font << /F1 3 0 R /F2 4 0 R >>${xobjects} >> /Contents ${pageIds[i] + 1} 0 R >>`);
       add(`<< /Length ${Buffer.byteLength(stream, "latin1")} >>\nstream\n${stream}\nendstream`);
+    });
+    this.images.forEach((img, i) => {
+      const bin = (b: Buffer) => b.toString("latin1");
+      add(`<< /Type /XObject /Subtype /Image /Width ${img.w} /Height ${img.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /FlateDecode${img.alpha ? ` /SMask ${imageIds[i] + 1} 0 R` : ""} /Length ${img.rgb.length} >>\nstream\n${bin(img.rgb)}\nendstream`);
+      if (img.alpha) add(`<< /Type /XObject /Subtype /Image /Width ${img.w} /Height ${img.h} /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode /Length ${img.alpha.length} >>\nstream\n${bin(img.alpha)}\nendstream`);
     });
 
     let out = "%PDF-1.4\n%\xE2\xE3\xCF\xD3\n";
